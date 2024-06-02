@@ -1,5 +1,6 @@
 import sqlite3
 from sqlite3 import Error
+from datetime import datetime
 
 class DataManager:
     def __init__(self, db_file):
@@ -24,13 +25,34 @@ class DataManager:
         cur = self.db_conn.cursor()
         cur.execute("INSERT INTO users (user, debt) VALUES (?, ?)", (user, 0))
         self.db_conn.commit()
+        
+    def get_user_debt(self, user):
+        cur = self.db_conn.cursor()
+        cur.execute("SELECT debt FROM users WHERE user = ?", (user,))
+        return cur.fetchone()[0]
+    
+    def pay_debt(self, user, amount):
+        self.update_user_debt(user, 0)
+        
+        cur = self.db_conn.cursor()
+        cur.execute("INSERT INTO debt_paid (user, amount, time_stamp) VALUES (?, ?, ?)", (user, amount, datetime.now()))
+        self.db_conn.commit()
     
     def update_user_debt(self, user, debt):
         cur = self.db_conn.cursor()
         cur.execute("UPDATE users SET debt = ? WHERE user = ?", (debt, user))
         self.db_conn.commit()
-
-    def add_consumed_product(self, user, product, sugar, milk):
+        
+    def _add_product_debt(self, user, price):
         cur = self.db_conn.cursor()
-        cur.execute("INSERT INTO consume (user, product, sugar, milk, time_stamp) VALUES (?, ?, ?, ?, datetime('now'))", (user, product, sugar, milk))
+        cur.execute("SELECT debt FROM users WHERE user = ?", (user,))
+        debt = cur.fetchone()[0]
+        cur.execute("UPDATE users SET debt = ? WHERE user = ?", (debt + price, user))
         self.db_conn.commit()
+
+    def add_consumed_product(self, user, product, selected_options, total_price):
+        cur = self.db_conn.cursor()
+        cur.execute("INSERT INTO consumed (user, product, options, price, time_stamp) VALUES (?, ?, ?, ?, ?)", (user, product, selected_options, total_price, datetime.now()))
+        self.db_conn.commit()
+        
+        self._add_product_debt(user, total_price)

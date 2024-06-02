@@ -37,17 +37,20 @@
         {
             "id": 3,
             "name": "capuccino",
-            "price": 0.40
+            "price": 0.40,
+            "options": []
         },
         {
             "id": 4,
             "name": "latte",
-            "price": 0.40
+            "price": 0.40,
+            "options": []
         },
         {
             "id": 5,
             "name": "glass of milk",
-            "price": 0.50
+            "price": 0.50,
+            "options": []
         }
     ]
 }

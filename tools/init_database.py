@@ -22,7 +22,8 @@ def init_table(db_conn):
     """
     cur = db_conn.cursor()
     cur.execute("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, user TEXT, debt REAL)")
-    cur.execute("CREATE TABLE IF NOT EXISTS consumed (id INTEGER PRIMARY KEY, user TEXT, product TEXT, sugar TEXT, milk TEXT, time_stamp TEXT)")
+    cur.execute("CREATE TABLE IF NOT EXISTS consumed (id INTEGER PRIMARY KEY, user TEXT, product TEXT, options TEXT, price REAL, time_stamp TEXT)")
+    cur.execute("CREATE TABLE IF NOT EXISTS debt_paid (id INTEGER PRIMARY KEY, user TEXT, amount REAL, time_stamp TEXT)")
     db_conn.commit()
 
 

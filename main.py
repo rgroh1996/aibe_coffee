@@ -5,7 +5,10 @@ from frontend.select_coffee_screen import SelectCoffeeScreen
 from frontend.payment_screen import PaymentScreen
 from frontend.new_user_screen import NewUserScreen
 
+import threading
+
 from backend.data_manager import DataManager
+from backend.shelly_log import log_voltage_main
 
 class CoffeeListApp(App):
     def build(self):
@@ -21,4 +24,19 @@ class CoffeeListApp(App):
         return sm
 
 if __name__ == '__main__':
+    # Before running the app, start the smart plug logging
+    
+    # Signal for background thread to stop
+    stop_signal = threading.Event()
+
+    # Create and start the thread
+    thread = threading.Thread(target=log_voltage_main, args=(stop_signal,))
+    # Start the thread
+    thread.start()
+    
+    # Run the coffee list app
     CoffeeListApp().run()
+    
+    stop_signal.set()
+    # Wait for the thread to finish
+    thread.join()

@@ -1,2 +1,4 @@
 *__pycache__
 *.vscode
+*shelly_log*
+*payment_tmp*
