@@ -18,23 +18,23 @@ class MainScreen(Screen):
         layout.add_widget(alphabet_layout)
 
         # Add alphabet buttons
-        alphabet_grid = GridLayout(rows=3, spacing=5)
+        alphabet_grid = GridLayout(rows=3, spacing=3)
         alphabet_layout.add_widget(alphabet_grid)
 
         for letter in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
             letter_button = Button(text=letter, size_hint=(1, 1), background_color=(0.8, 0.8, 0.8, 1))
             letter_button.bind(on_press=self.filter_users_by_letter)
             alphabet_grid.add_widget(letter_button)
-            letter_button.font_size = '18sp'
-            letter_button.spacing = (5, 5)
+            letter_button.font_size = '26sp'
+            letter_button.spacing = (3, 3)
             letter_button.halign = 'center'
         
         # add another option "all" to show all users
         all_button = Button(text='All', size_hint=(1, 1), background_color=(0.8, 0.8, 0.8, 1))
         all_button.bind(on_press=self.update_user_list)
         alphabet_grid.add_widget(all_button)
-        all_button.font_size = '18sp'
-        all_button.spacing = (5, 5)            
+        all_button.font_size = '26sp'
+        all_button.spacing = (3, 3)            
         
         # Scrollable list of user buttons
         scroll_view = ScrollView(size_hint=(1, 0.9))
@@ -59,8 +59,8 @@ class MainScreen(Screen):
         for user, debt in filtered_users:
             user_button = Button(text=f'{user} \n Debt: {debt:.2f}', 
                 size_hint_y=None, 
-                height=60,
-                font_size='20sp',
+                height=80,
+                font_size='30sp',
                 bold=True,
                 halign='center',
                 valign='middle',
@@ -82,8 +82,8 @@ class MainScreen(Screen):
         for user, debt in users:
             user_button = Button(text=f'{user} \n Debt: {debt:.2f}', 
                 size_hint_y=None, 
-                height=60,
-                font_size='20sp',
+                height=80,
+                font_size='30sp',
                 bold=True,
                 halign='center',
                 valign='middle',

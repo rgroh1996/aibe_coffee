@@ -77,13 +77,14 @@ class SelectCoffeeScreen(Screen):
         main_layout.add_widget(product_label)        
 
         # Product selection grid layout
-        self.product_grid_layout = GridLayout(cols=2, spacing=10, padding=10)
+        self.product_grid_layout = GridLayout(cols=3, spacing=10, padding=10)
         for product_name in self.products.keys():
             price = "{:.2f}".format(self.products[product_name]['price'])  # Format the price with two decimal places
             btn = Button(
                 text=product_name + f' - ' + price + '€',  # Use the formatted price
                 size_hint=(None, None),
-                size=(150, 50)
+                size=(250, 75),
+                font_size='26sp'
             )
             btn.bind(on_release=self.select_product)
             self.product_grid_layout.add_widget(btn)
@@ -101,8 +102,9 @@ class SelectCoffeeScreen(Screen):
         confirm_button = Button(
             text='Confirm Selection',
             size_hint=(None, None),
-            size=(200, 50),
-            pos_hint={'center_x': 0.5}
+            size=(225, 60),
+            pos_hint={'center_x': 0.5},
+            font_size='26sp'
         )
         confirm_button.bind(on_press=self.show_confirmation_popup)
         main_layout.add_widget(confirm_button)
@@ -141,8 +143,9 @@ class SelectCoffeeScreen(Screen):
                     btn = Button(
                         text=option['name'] + ' - ' + str(option['price']) + '€',
                         size_hint=(None, None),
-                        size=(250, 50),
-                        background_color=(1, 1, 1, 1)
+                        size=(200, 60),
+                        background_color=(1, 1, 1, 1),
+                        font_size='26sp'
                     )
                     btn.bind(on_release=self.toggle_option)
                     self.options_layout.add_widget(btn)
@@ -160,51 +163,52 @@ class SelectCoffeeScreen(Screen):
                 self.products[selected_product]['options'][selected_product_data['options'].index(option)]['selected'] = not option['selected']
             
     def show_confirmation_popup(self, button):
-        # Summary of the selection with total price
-        total_price = 0
-        summary = f'User: {self.selected_user}\n'
-        summary += f'Product: {self.selected_product}\n'
-        selected_product_data = self.products[self.selected_product.split(' - ')[0]]
-        total_price += selected_product_data['price']
-        summary += 'Options:\n'
-        if len(selected_product_data['options']) == 0:
-            summary += '  - None\n'
-        else:
-            selected_options = [option for option in selected_product_data['options'] if option['selected']]
-            if len(selected_options) == 0:
+        if self.selected_product is not None:
+            total_price = 0
+            summary = f'User: {self.selected_user}\n'
+            summary += f'Product: {self.selected_product}\n'
+            selected_product_data = self.products[self.selected_product.split(' - ')[0]]
+            total_price += selected_product_data['price']
+            summary += 'Options:\n'
+            if len(selected_product_data['options']) == 0:
                 summary += '  - None\n'
             else:
-                for option in selected_options:
-                    total_price += option['price']
-                    summary += f'  - {option["name"]} - {option["price"]}€\n'
-        summary += f'\nTotal Price: {total_price:.2f}€'
-        
-        content = BoxLayout(orientation='vertical', spacing=10, padding=10)
-        content.add_widget(Label(text=summary))
-        
-        buttons_layout = BoxLayout(size_hint_y=None, height=50)
-        yes_button = Button(text='Yes', on_press=self.confirm_selection)
-        no_button = Button(text='No', on_press=lambda x: self.popup.dismiss())
-        buttons_layout.add_widget(yes_button)
-        buttons_layout.add_widget(no_button)
-        
-        content.add_widget(buttons_layout)
-        
-        self.popup = Popup(title='Confirm Selection', content=content, size_hint=(None, None), size=(400, 300))
-        self.popup.open()
+                selected_options = [option for option in selected_product_data['options'] if option['selected']]
+                if len(selected_options) == 0:
+                    summary += '  - None\n'
+                else:
+                    for option in selected_options:
+                        total_price += option['price']
+                        summary += f'  - {option["name"]} - {option["price"]}€\n'
+            summary += f'\nTotal Price: {total_price:.2f}€'
+            
+            content = BoxLayout(orientation='vertical', spacing=10, padding=10)
+            content.add_widget(Label(text=summary))
+            
+            buttons_layout = BoxLayout(size_hint_y=None, height=50)
+            yes_button = Button(text='Yes', on_press=self.confirm_selection)
+            no_button = Button(text='No', on_press=lambda x: self.popup.dismiss())
+            buttons_layout.add_widget(yes_button)
+            buttons_layout.add_widget(no_button)
+            
+            content.add_widget(buttons_layout)
+            
+            self.popup = Popup(title='Confirm Selection', content=content, size_hint=(None, None), size=(400, 300))
+            self.popup.open()
         
 
     def confirm_selection(self, button):
-        selected_product_data = self.products[self.selected_product.split(' - ')[0]]
-        total_price = selected_product_data['price']
-        for option in selected_product_data['options']:
-            if option['selected']:
-                total_price += option['price']
-                
-        selected_options = ','.join([option['name'] for option in selected_product_data['options'] if option['selected']])
-        self.data_manager.add_consumed_product(self.selected_user, self.selected_product.split(' - ')[0], selected_options, total_price)
-        self.manager.current = 'main'
-        self.popup.dismiss()
+        if self.selected_product is not None:
+            selected_product_data = self.products[self.selected_product.split(' - ')[0]]
+            total_price = selected_product_data['price']
+            for option in selected_product_data['options']:
+                if option['selected']:
+                    total_price += option['price']
+                    
+            selected_options = ','.join([option['name'] for option in selected_product_data['options'] if option['selected']])
+            self.data_manager.add_consumed_product(self.selected_user, self.selected_product.split(' - ')[0], selected_options, total_price)
+            self.manager.current = 'main'
+            self.popup.dismiss()
         
     def pay_debts(self, button):
         # Get debt of the selected user

@@ -4,11 +4,16 @@ from frontend.main_screen import MainScreen
 from frontend.select_coffee_screen import SelectCoffeeScreen
 from frontend.payment_screen import PaymentScreen
 from frontend.new_user_screen import NewUserScreen
+from kivy.config import Config
 
 import threading
 
 from backend.data_manager import DataManager
 from backend.shelly_log import log_voltage_main
+
+# Set configuration for full screen mode
+Config.set('graphics', 'fullscreen', 'auto')
+Config.write()
 
 class CoffeeListApp(App):
     def build(self):

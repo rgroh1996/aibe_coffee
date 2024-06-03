@@ -1,3 +1,5 @@
 *__pycache__
 *.vscode
 *payment_tmp*
+shelly_log/
+database/*
