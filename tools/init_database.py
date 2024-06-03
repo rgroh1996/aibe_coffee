@@ -29,8 +29,11 @@ def init_table(db_conn):
 
 if __name__ == '__main__':
 
-    # Look for the path dynamically to make it more robust
-    database_path = glob.glob("../**/database/", recursive=True)[0]
+    database_path = "../database"
+    # check if exists, otherwise create
+    if not os.path.exists(database_path):
+        os.makedirs(database_path)
+
     database_path = os.path.join(database_path, "aibe_coffee.db")
 
     # create a database connection
