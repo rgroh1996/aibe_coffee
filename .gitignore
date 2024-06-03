@@ -2,4 +2,4 @@
 *.vscode
 *payment_tmp*
 shelly_log/
-database/*
+*/aibe_coffee.db
