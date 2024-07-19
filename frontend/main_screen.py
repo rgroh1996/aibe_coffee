@@ -85,7 +85,7 @@ class MainScreen(Screen):
 
         for (user, score, debt), rank in zip(users, range(1, len(users) + 1)):
             button_color = (0.6, 0.4, 1, 1) if debt < self.accepted_debt else (1, 0.4, 0.6, 1)
-            button_text = f'{user} \n Rank {rank} - Two Week Score: {score} - Debt: {debt:.2f} ' 
+            button_text = f'{user} \n Rank {rank} - Two Week Score: {score:.2f} - Debt: {debt:.2f} ' 
             if debt >= self.accepted_debt: 
                 button_text += " - Pay up!"
             user_button = Button(text=button_text, 
