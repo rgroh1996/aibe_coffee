@@ -1,6 +1,6 @@
 import sqlite3
 from sqlite3 import Error
-from datetime import datetime
+from datetime import datetime, timedelta
 
 class DataManager:
     def __init__(self, db_file):
@@ -56,3 +56,17 @@ class DataManager:
         self.db_conn.commit()
         
         self._add_product_debt(user, total_price)
+
+
+    def get_users_recently_consumed(self):
+        two_weeks_ago = datetime.now() - timedelta(weeks=2)
+        cur = self.db_conn.cursor()
+        cur.execute("""
+            SELECT u.user, 
+                COALESCE(SUM(c.price), 0) AS total_consumed, 
+                u.debt AS debt_amount
+            FROM users u
+            LEFT JOIN consumed c ON u.user = c.user AND c.time_stamp >= ?
+            GROUP BY u.user, u.debt
+        """, (two_weeks_ago,))
+        return cur.fetchall()

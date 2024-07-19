@@ -1,52 +1,49 @@
-asttokens @ file:///opt/conda/conda-bld/asttokens_1646925590279/work
-backcall @ file:///home/ktietz/src/ci/backcall_1611930011877/work
+asttokens 
+backcall 
 certifi==2024.6.2
 charset-normalizer==3.3.2
-colorama @ file:///C:/b/abs_a9ozq0l032/croot/colorama_1672387194846/work
-comm @ file:///C:/b/abs_67a8058udb/croot/comm_1709322909844/work
-debugpy @ file:///C:/b/abs_c0y1fjipt2/croot/debugpy_1690906864587/work
-decorator @ file:///opt/conda/conda-bld/decorator_1643638310831/work
+colorama  
+comm 
+debugpy 
+decorator 
 docutils==0.21.2
-exceptiongroup @ file:///C:/b/abs_c5h1o1_b5b/croot/exceptiongroup_1706031441653/work
-executing @ file:///opt/conda/conda-bld/executing_1646925071911/work
+exceptiongroup 
+executing 
 idna==3.7
-importlib-metadata @ file:///C:/b/abs_c1egths604/croot/importlib_metadata-suite_1704813568388/work
-ipykernel @ file:///C:/b/abs_c2u94kxcy6/croot/ipykernel_1705933907920/work
-ipython @ file:///C:/b/abs_e5729i179y/croot/ipython_1694181400005/work
-jedi @ file:///C:/ci/jedi_1644315428289/work
-jupyter_client @ file:///C:/b/abs_a6h3c8hfdq/croot/jupyter_client_1699455939372/work
-jupyter_core @ file:///C:/b/abs_c769pbqg9b/croot/jupyter_core_1698937367513/work
+importlib-metadata 
+ipykernel 
+ipython 
+jedi 
+jupyter_client 
+jupyter_core 
 Kivy==2.3.0
-kivy-deps.angle==0.4.0
-kivy-deps.glew==0.3.1
-kivy-deps.sdl2==0.7.0
-Kivy-Garden==0.1.5
-matplotlib-inline @ file:///C:/ci/matplotlib-inline_1661915841596/work
-nest-asyncio @ file:///C:/b/abs_65d6lblmoi/croot/nest-asyncio_1708532721305/work
+matplotlib-inline 
+nest-asyncio 
 numpy==1.26.4
-packaging @ file:///C:/b/abs_cc1h2xfosn/croot/packaging_1710807447479/work
+packaging 
 pandas==2.2.2
-parso @ file:///opt/conda/conda-bld/parso_1641458642106/work
-pickleshare @ file:///tmp/build/80754af9/pickleshare_1606932040724/work
-platformdirs @ file:///C:/b/abs_b6z_yqw_ii/croot/platformdirs_1692205479426/work
-prompt-toolkit @ file:///C:/b/abs_68uwr58ed1/croot/prompt-toolkit_1704404394082/work
-psutil @ file:///C:/Windows/Temp/abs_b2c2fd7f-9fd5-4756-95ea-8aed74d0039flsd9qufz/croots/recipe/psutil_1656431277748/work
-pure-eval @ file:///opt/conda/conda-bld/pure_eval_1646925070566/work
-Pygments @ file:///C:/b/abs_fay9dpq4n_/croot/pygments_1684279990574/work
+parso 
+pickleshare 
+platformdirs 
+prompt-toolkit 
+psutil 
+pure-eval 
+Pygments 
 pypiwin32==223
 pypng==0.20220715.0
-python-dateutil @ file:///C:/b/abs_3au_koqnbs/croot/python-dateutil_1716495777160/work
+python-dateutil 
 pytz==2024.1
 pywin32==305.1
-pyzmq @ file:///C:/b/abs_89aq69t0up/croot/pyzmq_1705605705281/work
+pyzmq 
 qrcode==7.4.2
 requests==2.32.3
-six @ file:///tmp/build/80754af9/six_1644875935023/work
-stack-data @ file:///opt/conda/conda-bld/stack_data_1646927590127/work
-tornado @ file:///C:/b/abs_0cbrstidzg/croot/tornado_1696937003724/work
-traitlets @ file:///C:/b/abs_e5m_xjjl94/croot/traitlets_1671143896266/work
-typing_extensions @ file:///C:/b/abs_0as9mdbkfl/croot/typing_extensions_1715268906610/work
+six 
+stack-data 
+tornado 
+traitlets 
+typing_extensions 
 tzdata==2024.1
 urllib3==2.2.1
-wcwidth @ file:///Users/ktietz/demo/mc3/conda-bld/wcwidth_1629357192024/work
-zipp @ file:///C:/b/abs_b0beoc27oa/croot/zipp_1704206963359/work
+wcwidth 
+zipp 
+qrcode

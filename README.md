@@ -15,7 +15,14 @@ To start the app, follow these steps:
     pip install -r requirements.txt
     ```
 
-5. Run the following command to start the app:
+5. Initialized the database
+
+    ```bash
+    cd tools 
+    python init_database.py
+    ```
+
+6. Run the following command to start the app:
 
     ```bash
     python main.py
