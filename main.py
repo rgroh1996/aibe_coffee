@@ -7,9 +7,10 @@ from frontend.new_user_screen import NewUserScreen
 from kivy.config import Config
 
 import threading
+import argparse
 
 from backend.data_manager import DataManager
-from backend.shelly_log import log_voltage_main
+from backend.shelly_log import log_voltage_main, test_connection
 
 # Set configuration for full screen mode
 Config.set('graphics', 'fullscreen', 'auto')
@@ -29,10 +30,16 @@ class CoffeeListApp(App):
         return sm
 
 if __name__ == '__main__':
-    # Before running the app, start the smart plug logging
-    
+    parser = argparse.ArgumentParser(description='Start the Coffee List App with optional voltage logging.')
+    parser.add_argument('--noshelly', action='store_true', help='Do not start the smart plug voltage logging.')
+    args = parser.parse_args()
+
     # Signal for background thread to stop
     stop_signal = threading.Event()
+
+    stop_if_no_shelly = not args.noshelly
+    if not test_connection() and stop_if_no_shelly:
+        raise ValueError("Shelly not connected")
 
     # Create and start the thread
     thread = threading.Thread(target=log_voltage_main, args=(stop_signal,))

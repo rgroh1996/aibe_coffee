@@ -8,26 +8,35 @@ from datetime import datetime
 INTERVAL = 0.9 # query interval 
 SAVE_INTERVAL = 10  # save file every seconds
 
+url = "http://192.168.137.133/rpc/Shelly.GetStatus"
+
+# The JSON-RPC payload
+payload = {
+    "jsonrpc": "2.0",
+    "method": "Shelly.GetStatus",
+    "params": {
+        "id": 0
+    },
+    "id": 1  # The ID of the request
+}
+
+# Headers to indicate that the payload is in JSON format
+headers = {
+    "Content-Type": "application/json"
+}
+
+def test_connection():
+    try: 
+        response = requests.post(url, data=json.dumps(payload), headers=headers, timeout=5) 
+        response_data = response.json()
+        return True
+    except requests.exceptions.RequestException: 
+        print("Shelly not connected")
+        return False
+
 
 def log_voltage_main(stop_signal, verbose=False): 
     # The URL to which you're sending the request
-    url = "http://192.168.137.133/rpc/Shelly.GetStatus"
-
-    # The JSON-RPC payload
-    payload = {
-        "jsonrpc": "2.0",
-        "method": "Shelly.GetStatus",
-        "params": {
-            "id": 0
-        },
-        "id": 1  # The ID of the request
-    }
-
-    # Headers to indicate that the payload is in JSON format
-    headers = {
-        "Content-Type": "application/json"
-    }
-
     last_save = datetime.now()
     current_day = datetime.now().day
 
@@ -51,7 +60,7 @@ def log_voltage_main(stop_signal, verbose=False):
 
         # Making the POST request
         try: 
-            response = requests.post(url, data=json.dumps(payload), headers=headers)
+            response = requests.post(url, data=json.dumps(payload), headers=headers, timeout=5)
             response_data = response.json()
 
             # Print the response

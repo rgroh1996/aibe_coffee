@@ -22,10 +22,10 @@ To start the app, follow these steps:
     python init_database.py
     ```
 
-6. Run the following command to start the app:
+6. Run the following command to start the app without logging voltage (-- to seperate kivy args):
 
     ```bash
-    python main.py
+    python main.py -- --noshelly
     ```
 
 ## Project Structure
