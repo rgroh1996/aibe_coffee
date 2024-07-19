@@ -6,6 +6,7 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 
 class MainScreen(Screen):
+    accepted_debt = 10
     def __init__(self, data_manager, **kwargs):
         super(MainScreen, self).__init__(**kwargs)
         self.data_manager = data_manager
@@ -30,7 +31,7 @@ class MainScreen(Screen):
             letter_button.halign = 'center'
         
         # add another option "all" to show all users
-        all_button = Button(text='All', size_hint=(1, 1), background_color=(0.8, 0.8, 0.8, 1))
+        all_button = Button(text='Rank', size_hint=(1, 1), background_color=(0.8, 0.8, 0.8, 1))
         all_button.bind(on_press=self.update_user_list)
         alphabet_grid.add_widget(all_button)
         all_button.font_size = '26sp'
@@ -51,13 +52,18 @@ class MainScreen(Screen):
     
     def filter_users_by_letter(self, instance):
         selected_letter = instance.text
-        users = self.data_manager.load_users_and_debts()
-        filtered_users = [[user, debt] for user, debt in users if user.startswith(selected_letter)]
+        users = self.data_manager.get_users_recently_consumed()
+
+        filtered_users = [[user, score, debt, rank] for (user, score, debt), rank in zip(users, range(1, len(users) + 1)) if user.startswith(selected_letter)]
         
         self.user_layout.clear_widgets()
         
-        for user, debt in filtered_users:
-            user_button = Button(text=f'{user} \n Debt: {debt:.2f}', 
+        for user, score, debt, rank in filtered_users:
+            button_color = (0.6, 0.4, 1, 1) if debt < self.accepted_debt else (1, 0.4, 0.6, 1)
+            button_text = f'{user} \n Rank {rank} - Two Week Score: {score:.2f} - Debt: {debt:.2f} '
+            if debt >= self.accepted_debt: 
+                button_text += " - Pay up!"
+            user_button = Button(text=button_text, 
                 size_hint_y=None, 
                 height=80,
                 font_size='30sp',
@@ -65,7 +71,7 @@ class MainScreen(Screen):
                 halign='center',
                 valign='middle',
                 padding=(15, 15),
-                background_color=(0.6, 0.4, 1, 1))
+                background_color=button_color)
             user_button.bind(on_press=self.on_user_button_press)
             self.user_layout.add_widget(user_button)
 
@@ -74,13 +80,15 @@ class MainScreen(Screen):
 
     def update_user_list(self, instance=None):
         self.user_layout.clear_widgets()
-        users = self.data_manager.load_users_and_debts()
-        
-        # Sort users alphabetically
-        users.sort(key=lambda x: x[0])
+        users = self.data_manager.get_users_recently_consumed()
+        users.sort(key=lambda x: x[1], reverse=True)
 
-        for user, debt in users:
-            user_button = Button(text=f'{user} \n Debt: {debt:.2f}', 
+        for (user, score, debt), rank in zip(users, range(1, len(users) + 1)):
+            button_color = (0.6, 0.4, 1, 1) if debt < self.accepted_debt else (1, 0.4, 0.6, 1)
+            button_text = f'{user} \n Rank {rank} - Two Week Score: {score} - Debt: {debt:.2f} ' 
+            if debt >= self.accepted_debt: 
+                button_text += " - Pay up!"
+            user_button = Button(text=button_text, 
                 size_hint_y=None, 
                 height=80,
                 font_size='30sp',
@@ -88,7 +96,7 @@ class MainScreen(Screen):
                 halign='center',
                 valign='middle',
                 padding=(15, 15),
-                background_color=(0.6, 0.4, 1, 1))
+                background_color=button_color)
             user_button.bind(on_press=self.on_user_button_press)
             self.user_layout.add_widget(user_button)
     
