@@ -44,20 +44,43 @@ class MainScreen(Screen):
         
         scroll_view.add_widget(self.user_layout)
         layout.add_widget(scroll_view)
-        
         # Button to add new user
         add_user_button = Button(text='Add New User', size_hint=(1, 0.1), background_color=(1, 0.6, 0.4, 1), height=20)
         add_user_button.bind(on_press=self.go_to_add_user_screen)
         layout.add_widget(add_user_button)
     
+    def get_users_with_total_scores(self):
+        users = self.data_manager.get_users_recently_consumed()
+        cleanings = self.data_manager.get_recent_cleanings()
+
+        # Create a dictionary to map users to their total credit from cleanings
+        user_credits = {}
+        for user, _, credit in cleanings:
+            if user in user_credits:
+                user_credits[user] += credit
+            else:
+                user_credits[user] = credit
+
+        # Add credit to the score for each user
+        users_with_total_scores = []
+        for user, score, debt in users:
+            debt = max(debt, 0) # no money for users who only clean but do not drink 
+            total_score = score + user_credits.get(user, 0)  # Add the credit to the score
+            users_with_total_scores.append([user, total_score, debt])
+
+        users_with_total_scores.sort(key=lambda x: x[1], reverse=True)
+        users_with_total_scores = [x + [y,] for x, y in zip(users_with_total_scores, range(1, len(users_with_total_scores) + 1))]
+        return users_with_total_scores
+
     def filter_users_by_letter(self, instance):
         selected_letter = instance.text
-        users = self.data_manager.get_users_recently_consumed()
+        users = self.get_users_with_total_scores()
+        filtered_users = []
+        for user_row in users: 
+            if user_row[0].startswith(selected_letter):
+                filtered_users.append(user_row)
 
-        filtered_users = [[user, score, debt, rank] for (user, score, debt), rank in zip(users, range(1, len(users) + 1)) if user.startswith(selected_letter)]
-        
         self.user_layout.clear_widgets()
-        
         for user, score, debt, rank in filtered_users:
             button_color = (0.6, 0.4, 1, 1) if debt < self.accepted_debt else (1, 0.4, 0.6, 1)
             button_text = f'{user} \n Rank {rank} - Two Week Score: {score:.2f} - Debt: {debt:.2f} '
@@ -80,10 +103,8 @@ class MainScreen(Screen):
 
     def update_user_list(self, instance=None):
         self.user_layout.clear_widgets()
-        users = self.data_manager.get_users_recently_consumed()
-        users.sort(key=lambda x: x[1], reverse=True)
-
-        for (user, score, debt), rank in zip(users, range(1, len(users) + 1)):
+        users = self.get_users_with_total_scores()
+        for user, score, debt, rank in users:
             button_color = (0.6, 0.4, 1, 1) if debt < self.accepted_debt else (1, 0.4, 0.6, 1)
             button_text = f'{user} \n Rank {rank} - Two Week Score: {score:.2f} - Debt: {debt:.2f} ' 
             if debt >= self.accepted_debt: 

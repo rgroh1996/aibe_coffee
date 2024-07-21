@@ -8,7 +8,7 @@ from datetime import datetime
 INTERVAL = 0.9 # query interval 
 SAVE_INTERVAL = 10  # save file every seconds
 
-url = "http://192.168.137.133/rpc/Shelly.GetStatus"
+url = "http://192.168.33.1/rpc/Shelly.GetStatus"
 
 # The JSON-RPC payload
 payload = {

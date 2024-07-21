@@ -25,7 +25,14 @@ class DataManager:
         cur = self.db_conn.cursor()
         cur.execute("INSERT INTO users (user, debt) VALUES (?, ?)", (user, 0))
         self.db_conn.commit()
-        
+
+    def add_cleaning(self, user, product, total_price): 
+        # change debt of user 
+        cur = self.db_conn.cursor()
+        cur.execute("INSERT INTO cleaning (user, cleaning_type, credit, time_stamp) VALUES (?, ?, ?, ?)", (user, product, -1 * total_price, datetime.now()))
+        self.db_conn.commit()
+        self._add_product_debt(user, total_price)
+
     def get_user_debt(self, user):
         cur = self.db_conn.cursor()
         cur.execute("SELECT debt FROM users WHERE user = ?", (user,))
@@ -57,7 +64,6 @@ class DataManager:
         
         self._add_product_debt(user, total_price)
 
-
     def get_users_recently_consumed(self):
         two_weeks_ago = datetime.now() - timedelta(weeks=2)
         cur = self.db_conn.cursor()
@@ -69,4 +75,24 @@ class DataManager:
             LEFT JOIN consumed c ON u.user = c.user AND c.time_stamp >= ?
             GROUP BY u.user, u.debt
         """, (two_weeks_ago,))
+        return cur.fetchall()
+
+    def get_recent_cleanings(self):
+        two_weeks_ago = datetime.now() - timedelta(weeks=2)
+        cur = self.db_conn.cursor()
+        cur.execute("""
+            SELECT user, cleaning_type, credit 
+            FROM cleaning
+            WHERE time_stamp >= ?
+        """, (two_weeks_ago,))
+        return cur.fetchall()
+
+    def get_cleanings_in_current_window(self, product, time_window):
+        cutoff_date = datetime.now() - timedelta(days=time_window)
+        cur = self.db_conn.cursor()
+        cur.execute("""
+            SELECT user, cleaning_type, credit, time_stamp
+            FROM cleaning
+            WHERE cleaning_type = ? AND time_stamp >= ?
+        """, (product, cutoff_date))
         return cur.fetchall()

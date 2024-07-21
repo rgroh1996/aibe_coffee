@@ -4,6 +4,7 @@ from frontend.main_screen import MainScreen
 from frontend.select_coffee_screen import SelectCoffeeScreen
 from frontend.payment_screen import PaymentScreen
 from frontend.new_user_screen import NewUserScreen
+from frontend.cleaning_screen import CleaningScreen
 from kivy.config import Config
 
 import threading
@@ -27,6 +28,7 @@ class CoffeeListApp(App):
         sm.add_widget(SelectCoffeeScreen(name='select_coffee', data_manager=self.data_manager))
         sm.add_widget(PaymentScreen(name='payment', data_manager=self.data_manager))
         sm.add_widget(NewUserScreen(name='new_user', data_manager=self.data_manager))
+        sm.add_widget(CleaningScreen(name='cleaning', data_manager=self.data_manager))
         return sm
 
 if __name__ == '__main__':

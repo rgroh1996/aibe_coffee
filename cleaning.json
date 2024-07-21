@@ -1,0 +1,16 @@
+{
+    "cleaning": [
+            {
+                "id": 1,
+                "name": "Descaling",
+                "price": -0.50,
+                "downtime":7
+            },
+            {
+                "id": 2,
+                "name": "Side Compartment Cleaning",
+                "price": -1.50,
+                "downtime": 7 
+            }
+        ]
+    }

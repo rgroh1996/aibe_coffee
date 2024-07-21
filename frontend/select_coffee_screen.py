@@ -14,6 +14,7 @@ class SelectCoffeeScreen(Screen):
         self.selected_user = None
 
         self.load_products()
+        self.load_cleanings()
         self.selected_product = None
         self.create_layout()
     
@@ -30,13 +31,29 @@ class SelectCoffeeScreen(Screen):
         self.selected_product = None
         self.on_selected_product_change()
 
+    def load_cleanings(self):
+        with open('cleaning.json', 'r') as file:
+            self.cleaning_data = json.load(file)['cleaning']
+        self.cleanings = {product['name']: product for product in self.cleaning_data}
+
     def load_products(self):
         with open('products.json', 'r') as file:
             self.products_data = json.load(file)['products']
         self.products = {product['name']: product for product in self.products_data}
 
+    def cleanings_overdue(self): 
+        for product in self.cleanings.keys(): 
+            if self.data_manager.get_cleanings_in_current_window(self.cleanings[product]["name"], self.cleanings[product]["downtime"]) == []:
+                return True
+        return False
+        
+    def reset_layout(self):
+        self.clear_widgets()
+        self.create_layout()
+
     def create_layout(self):
-        main_layout = BoxLayout(orientation='vertical', spacing=10, padding=10)
+        # cleaning condition 
+        self.main_layout = BoxLayout(orientation='vertical', spacing=10, padding=10)
 
         # Add the back button at the top
         back_button = Button(
@@ -47,7 +64,7 @@ class SelectCoffeeScreen(Screen):
             color=(1, 1, 1, 1)  # White text color
         )
         back_button.bind(on_press=self.go_back)
-        main_layout.add_widget(back_button)
+        self.main_layout.add_widget(back_button)
         
         # User Label that should be aligned left
         self.user_label = Label(
@@ -60,21 +77,40 @@ class SelectCoffeeScreen(Screen):
             valign='middle',
             halign='left'
         )
-        main_layout.add_widget(self.user_label)
+        self.main_layout.add_widget(self.user_label)
+         
+        cond = self.cleanings_overdue()
 
+        # Horizontal BoxLayout for "Pay Debts" and "Start Cleaning" buttons
+        button_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=50, spacing=10)
+        
         # Button for paying debts
         pay_button = Button(
             text='Pay Debts',
             size_hint=(None, None),
             size=(150, 50),
-            pos_hint={'center_x': 0.5}
+            pos_hint={'center_x': 0.5} if not cond else {}
         )
+
         pay_button.bind(on_press=self.pay_debts)
-        main_layout.add_widget(pay_button)
+        button_layout.add_widget(pay_button)        
+            # Conditionally add the "Start Cleaning" button
+        cleaning_background = (1, 0.4, 0.6, 1) if cond else (1,1,1,1) 
+        start_cleaning_button = Button(
+            text='Start Cleaning',
+            background_color=cleaning_background,
+            size_hint=(None, None),
+            size=(150, 50)
+        )
+        start_cleaning_button.bind(on_press=self.go_to_start_cleaning_screen)
+        button_layout.add_widget(start_cleaning_button)
+
+        # Add the button layout to the main layout
+        self.main_layout.add_widget(button_layout)
 
         # Label for products
         product_label = Label(text='Products', size_hint=(None, None), height=30, color=(1, 1, 1, 1), font_size=20, bold=True)
-        main_layout.add_widget(product_label)        
+        self.main_layout.add_widget(product_label)        
 
         # Product selection grid layout
         self.product_grid_layout = GridLayout(cols=3, spacing=10, padding=10)
@@ -88,15 +124,15 @@ class SelectCoffeeScreen(Screen):
             )
             btn.bind(on_release=self.select_product)
             self.product_grid_layout.add_widget(btn)
-        main_layout.add_widget(self.product_grid_layout)
+        self.main_layout.add_widget(self.product_grid_layout)
 
         # Options layout
         options_label = Label(text='Options', size_hint=(None, None), height=30, color=(1, 1, 1, 1), font_size=20, bold=True)
-        main_layout.add_widget(options_label)
+        self.main_layout.add_widget(options_label)
 
         # box layout should be aligned top
         self.options_layout = BoxLayout(orientation='horizontal', padding=10, height=60, pos_hint={'top': 1}, size_hint=(1, None))
-        main_layout.add_widget(self.options_layout)
+        self.main_layout.add_widget(self.options_layout)
 
         # Confirmation button
         confirm_button = Button(
@@ -106,13 +142,17 @@ class SelectCoffeeScreen(Screen):
             pos_hint={'center_x': 0.5},
             font_size='26sp'
         )
-        confirm_button.bind(on_press=self.show_confirmation_popup)
-        main_layout.add_widget(confirm_button)
+        confirm_button.bind(on_press=self.confirm_selection)
+        self.main_layout.add_widget(confirm_button)
 
-        self.add_widget(main_layout)
+        self.add_widget(self.main_layout)
 
     def go_back(self, instance):
         self.manager.current = 'main'
+
+    def go_to_start_cleaning_screen(self, instance):
+        self.manager.get_screen('cleaning').set_selected_user(self.selected_user)
+        self.manager.current = 'cleaning'
 
     def select_product(self, button):
         self.selected_product = button.text
@@ -208,7 +248,6 @@ class SelectCoffeeScreen(Screen):
             selected_options = ','.join([option['name'] for option in selected_product_data['options'] if option['selected']])
             self.data_manager.add_consumed_product(self.selected_user, self.selected_product.split(' - ')[0], selected_options, total_price)
             self.manager.current = 'main'
-            self.popup.dismiss()
         
     def pay_debts(self, button):
         # Get debt of the selected user
