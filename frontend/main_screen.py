@@ -36,6 +36,11 @@ class MainScreen(Screen):
         alphabet_grid.add_widget(all_button)
         all_button.font_size = '26sp'
         all_button.spacing = (3, 3)            
+
+        # Button to contribute
+        contribute_button = Button(text='Contribute', size_hint=(1, 0.1), background_color=(0.4, 0.6, 1, 1), height=20)
+        contribute_button.bind(on_press=self.go_to_contribute_screen)
+        layout.add_widget(contribute_button)
         
         # Scrollable list of user buttons
         scroll_view = ScrollView(size_hint=(1, 0.9))
@@ -128,3 +133,6 @@ class MainScreen(Screen):
     
     def go_to_add_user_screen(self, instance):
         self.manager.current = 'new_user'
+
+    def go_to_contribute_screen(self, instance):
+        self.manager.current = 'contribute_screen'
