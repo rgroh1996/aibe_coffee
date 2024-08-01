@@ -3,3 +3,4 @@
 *payment_tmp*
 shelly_log/
 *.db
+**/.DS_Store
