@@ -133,7 +133,7 @@ class MainScreen(Screen):
         selected_user = instance.text.split(' \n')[0]
         print(f"Selected user: {selected_user}")
 
-        # Hole aktuelle Daten
+        # Retrieve data 
         users = self.get_users_with_total_scores()
         user_data = next((u for u in users if u[0] == selected_user), None)
 
@@ -142,9 +142,13 @@ class MainScreen(Screen):
 
         user, score, debt, rank = user_data
 
-        # Wenn Schulden zu hoch → Popup
+        # If debt > high 
         if debt > 10:
             self.show_payment_popup(lambda: self.on_user_button_press_after(selected_user))
+
+        if debt > 12:
+            for i in range(int(debt - 12)):
+                self.show_payment_popup_lvl2(lambda: self.on_user_button_press_after(selected_user), exclamation_mark=i + 1)
 
         # Personalized Message
         #if selected_user == '5TR':
@@ -190,6 +194,34 @@ class MainScreen(Screen):
 
         btn.bind(on_press=lambda instance: self.dismiss_popup_and_continue(popup, on_dismiss_callback))
         popup.open()
+
+    
+    def show_payment_popup_lvl2(self, on_dismiss_callback, exclamation_mark):
+
+        label = Label(
+            text=f'Bro, your caffeine karma is severely out of balance{"!"*exclamation_mark} You better pay up.',
+            font_size=f'{22 + 2 * exclamation_mark}sp',
+            halign='center',
+            valign='middle'
+        )
+
+        label.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
+
+
+        content = BoxLayout(orientation='vertical', spacing=10, padding=10)
+        content.add_widget(label)
+
+        btn = Button(text='Got it!', size_hint=(1, 0.4), font_size='20sp')
+        content.add_widget(btn)
+
+        popup = Popup(title='Not so Friendly Bean Reminder',
+                    content=content,
+                    size_hint=(0.7, 0.4),
+                    auto_dismiss=False)
+
+        btn.bind(on_press=lambda instance: self.dismiss_popup_and_continue(popup, on_dismiss_callback))
+        popup.open()
+
 
     def dismiss_popup_and_continue(self, popup, callback):
         popup.dismiss()
