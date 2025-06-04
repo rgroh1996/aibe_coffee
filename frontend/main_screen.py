@@ -43,12 +43,12 @@ class MainScreen(Screen):
         layout.add_widget(contribute_button)
         
         # Scrollable list of user buttons
-        scroll_view = ScrollView(size_hint=(1, 0.9))
+        self.scroll_view = ScrollView(size_hint=(1, 0.9))
         self.user_layout = GridLayout(cols=1, spacing=10, size_hint_y=None)
         self.user_layout.bind(minimum_height=self.user_layout.setter('height'))
         
-        scroll_view.add_widget(self.user_layout)
-        layout.add_widget(scroll_view)
+        self.scroll_view.add_widget(self.user_layout)
+        layout.add_widget(self.scroll_view)
         # Button to add new user
         add_user_button = Button(text='Add New User', size_hint=(1, 0.1), background_color=(1, 0.6, 0.4, 1), height=20)
         add_user_button.bind(on_press=self.go_to_add_user_screen)
@@ -103,6 +103,8 @@ class MainScreen(Screen):
             user_button.bind(on_press=self.on_user_button_press)
             self.user_layout.add_widget(user_button)
 
+        self.scroll_view.scroll_y = 1.0
+
     def on_pre_enter(self):
         self.update_user_list()
 
@@ -125,7 +127,10 @@ class MainScreen(Screen):
                 background_color=button_color)
             user_button.bind(on_press=self.on_user_button_press)
             self.user_layout.add_widget(user_button)
-    
+        
+        # Scroll to top only when called from Rank button
+        self.scroll_view.scroll_y = 1.0
+
     def on_user_button_press(self, instance):
         selected_user = instance.text.split(' \n')[0]
         self.manager.current = 'select_coffee'
