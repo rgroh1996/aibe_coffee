@@ -3,7 +3,7 @@
         {
             "id": 1,
             "name": "coffee",
-            "price": 0.30,
+            "price": 0.35,
             "options": [
                 {
                     "id": 1,
@@ -20,7 +20,7 @@
         {
             "id": 2,
             "name": "americano",
-            "price": 0.30,
+            "price": 0.35,
             "options": [
                 {
                     "id": 1,
@@ -37,25 +37,25 @@
         {
             "id": 3,
             "name": "capuccino",
-            "price": 0.40,
+            "price": 0.45,
             "options": []
         },
         {
             "id": 4,
             "name": "latte",
-            "price": 0.40,
+            "price": 0.45,
             "options": []
         },
         {
             "id": 5,
             "name": "glass of milk",
-            "price": 0.50,
+            "price": 0.55,
             "options": []
         },
         {
             "id": 6,
             "name": "Club-Mate",
-            "price": 1.00,
+            "price": 1.05,
             "options": []
         }
     ]
