@@ -3,6 +3,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.image import Image
+from kivy.app import App
 
 import qrcode
 
@@ -95,8 +96,9 @@ class PaymentScreen(Screen):
         
         self.add_widget(main_layout)
         
+
     def go_back(self, instance):
-        self.manager.current = 'main'
+        App.get_running_app().sm.current = 'main'
     
     def update_user_label(self):
         if self.selected_user:
@@ -131,8 +133,5 @@ class PaymentScreen(Screen):
         return path 
 
     def confirm_payment(self, instance):
-        # Pay debt and update debt in the database
         self.data_manager.pay_debt(self.selected_user, self.user_debt)
-        
-        # Back to main screen
-        self.manager.current = 'main'
+        App.get_running_app().sm.current = 'main'

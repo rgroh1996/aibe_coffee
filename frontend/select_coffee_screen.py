@@ -4,6 +4,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import Screen
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
+from kivy.app import App
 
 import json
 
@@ -148,11 +149,12 @@ class SelectCoffeeScreen(Screen):
         self.add_widget(self.main_layout)
 
     def go_back(self, instance):
-        self.manager.current = 'main'
+        App.get_running_app().sm.current = 'main'
 
     def go_to_start_cleaning_screen(self, instance):
-        self.manager.get_screen('cleaning').set_selected_user(self.selected_user)
-        self.manager.current = 'cleaning'
+        app = App.get_running_app()
+        app.sm.get_screen('cleaning').set_selected_user(self.selected_user)
+        app.sm.current = 'cleaning'
 
     def select_product(self, button):
         self.selected_product = button.text
@@ -247,7 +249,8 @@ class SelectCoffeeScreen(Screen):
                     
             selected_options = ','.join([option['name'] for option in selected_product_data['options'] if option['selected']])
             self.data_manager.add_consumed_product(self.selected_user, self.selected_product.split(' - ')[0], selected_options, total_price)
-            self.manager.current = 'main'
+            App.get_running_app().sm.current = 'main'
+
         
     def pay_debts(self, button):
         # Get debt of the selected user
@@ -262,7 +265,8 @@ class SelectCoffeeScreen(Screen):
             self.popup = Popup(title='Debt Payment', content=content, size_hint=(None, None), size=(400, 300))
             self.popup.open()
         else:                
-            self.manager.get_screen('payment').set_selected_user(self.selected_user)
-            self.manager.current = 'payment'
+            app = App.get_running_app()
+            app.sm.get_screen('payment').set_selected_user(self.selected_user)
+            app.sm.current = 'payment'
         
     

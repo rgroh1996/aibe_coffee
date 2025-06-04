@@ -7,6 +7,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.image import Image
+from kivy.app import App
 
 import qrcode
 
@@ -60,7 +61,7 @@ class ContributeScreen(Screen):
         self.add_widget(main_layout)
         
     def go_back(self, instance):
-        self.manager.current = 'main'
+        App.get_running_app().sm.current = 'main'
     
     def get_contribution_img_path(self, url):
         # Generate QR code

@@ -5,6 +5,7 @@ from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.popup import Popup
+from kivy.app import App
 
 
 class NewUserScreen(Screen):
@@ -55,7 +56,7 @@ class NewUserScreen(Screen):
         self.add_widget(main_layout)
     
     def go_back(self, instance):
-        self.manager.current = 'main'
+        App.get_running_app().sm.current = 'main'
 
     def on_focus(self, instance, value):
         if value:
@@ -98,7 +99,7 @@ class NewUserScreen(Screen):
     def confirm_user_name(self, user_name):
         self.data_manager.add_new_user(user_name)
         self.popup.dismiss()
-        self.manager.current = 'main'
+        App.get_running_app().sm.current = 'main'
 
     def show_confirmation_popup(self, instance):
         user_name = self.name_input.text.strip()
