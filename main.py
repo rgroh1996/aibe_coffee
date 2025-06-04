@@ -28,13 +28,13 @@ Config.write()
 
 class CoffeeListApp(App):
     def build(self):
-        # Root-Layout: überlagert Screens und Emoji
+        # Root-Layout:  overlays screens and emoji
         self.root_layout = FloatLayout()
 
         # initialize the data manager
         self.data_manager = DataManager("database/aibe_coffee.db")
 
-        # ScreenManager bleibt unverändert
+        # ScreenManager remains unchanged 
         self.sm = ScreenManager()
         self.sm.add_widget(MainScreen(name='main', data_manager=self.data_manager))
         self.sm.add_widget(SelectCoffeeScreen(name='select_coffee', data_manager=self.data_manager))
@@ -43,10 +43,10 @@ class CoffeeListApp(App):
         self.sm.add_widget(CleaningScreen(name='cleaning', data_manager=self.data_manager))
         self.sm.add_widget(ContributeScreen(name='contribute_screen'))
 
-        # ScreenManager ins Layout einfügen
+        # add ScreenManager to Layout 
         self.root_layout.add_widget(self.sm)
 
-        # Emoji-Label oben drüber
+        # Emoji-Label on top  
         self.emoji_label = Label(
             text='',
             font_size='64sp',
