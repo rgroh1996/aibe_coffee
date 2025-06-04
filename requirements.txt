@@ -33,7 +33,6 @@ pypiwin32==223
 pypng==0.20220715.0
 python-dateutil 
 pytz==2024.1
-pywin32==305.1
 pyzmq 
 qrcode==7.4.2
 requests==2.32.3

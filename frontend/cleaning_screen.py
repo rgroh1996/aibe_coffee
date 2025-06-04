@@ -4,6 +4,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import Screen
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
+from kivy.app import App
 
 import json
 
@@ -116,7 +117,7 @@ class CleaningScreen(Screen):
             self.main_layout.add_widget(confirm_button)
 
     def go_back(self, instance):
-        self.manager.current = 'main'
+        App.get_running_app().sm.current = 'main'
 
     def select_product(self, button):
         self.selected_product = button.text

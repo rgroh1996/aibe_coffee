@@ -4,6 +4,8 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.button import Button
 from kivy.uix.label import Label
+from kivy.uix.popup import Popup
+from kivy.app import App
 
 class MainScreen(Screen):
     accepted_debt = 10
@@ -53,6 +55,7 @@ class MainScreen(Screen):
         add_user_button = Button(text='Add New User', size_hint=(1, 0.1), background_color=(1, 0.6, 0.4, 1), height=20)
         add_user_button.bind(on_press=self.go_to_add_user_screen)
         layout.add_widget(add_user_button)
+
     
     def get_users_with_total_scores(self):
         users = self.data_manager.get_users_recently_consumed()
@@ -128,11 +131,66 @@ class MainScreen(Screen):
     
     def on_user_button_press(self, instance):
         selected_user = instance.text.split(' \n')[0]
-        self.manager.current = 'select_coffee'
-        self.manager.get_screen('select_coffee').set_selected_user(selected_user)
-    
+        print(f"Selected user: {selected_user}")
+
+        # Hole aktuelle Daten
+        users = self.get_users_with_total_scores()
+        user_data = next((u for u in users if u[0] == selected_user), None)
+
+        if not user_data:
+            return
+
+        user, score, debt, rank = user_data
+
+        # Wenn Schulden zu hoch → Popup
+        if debt > 10:
+            self.show_payment_popup(lambda: self.on_user_button_press_after(selected_user))
+
+        # Personalized Message
+        #if selected_user == '5TR':
+        #    App.get_running_app().show_global_emoji("Hello 5TR!")
+
+
+        self.on_user_button_press_after(selected_user)
+
+    def on_user_button_press_after(self, selected_user):
+        app = App.get_running_app()
+        app.sm.current = 'select_coffee'
+        app.sm.get_screen('select_coffee').set_selected_user(selected_user)
+
     def go_to_add_user_screen(self, instance):
         self.manager.current = 'new_user'
 
     def go_to_contribute_screen(self, instance):
         self.manager.current = 'contribute_screen'
+
+
+    def show_payment_popup(self, on_dismiss_callback):
+
+        label = Label(
+            text='Looks like your caffeine karma is a bit off balance. Toss a coin to your coffee crew and pay up!',
+            font_size='20sp',
+            halign='center',
+            valign='middle'
+        )
+
+        label.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
+
+
+        content = BoxLayout(orientation='vertical', spacing=10, padding=10)
+        content.add_widget(label)
+
+        btn = Button(text='Got it!', size_hint=(1, 0.4), font_size='20sp')
+        content.add_widget(btn)
+
+        popup = Popup(title='Friendly Bean Reminder',
+                    content=content,
+                    size_hint=(0.7, 0.4),
+                    auto_dismiss=False)
+
+        btn.bind(on_press=lambda instance: self.dismiss_popup_and_continue(popup, on_dismiss_callback))
+        popup.open()
+
+    def dismiss_popup_and_continue(self, popup, callback):
+        popup.dismiss()
+        callback()
