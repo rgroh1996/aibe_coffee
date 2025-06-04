@@ -51,6 +51,12 @@
             "name": "glass of milk",
             "price": 0.50,
             "options": []
+        },
+        {
+            "id": 6,
+            "name": "Club-Mate",
+            "price": 1.00,
+            "options": []
         }
     ]
 }
