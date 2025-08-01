@@ -72,13 +72,13 @@ class PaymentScreen(Screen):
         main_layout.add_widget(Label())
         
         # Add payment QR code
-        payment_img_path = self.get_payment_img_path(0)
-        payment_img = Image(
-            source=payment_img_path,
+        self.payment_img_path = self.get_payment_img_path(0)
+        self.payment_img = Image(
+            source=self.payment_img_path,
             size_hint=(1, None),
             height=300
         )
-        main_layout.add_widget(payment_img)
+        main_layout.add_widget(self.payment_img)
         
         # Add spacer
         main_layout.add_widget(Label())
@@ -107,6 +107,9 @@ class PaymentScreen(Screen):
             # update debt
             self.user_debt = self.data_manager.get_user_debt(self.selected_user)
             self.debt_label.text = f'Debt: {self.user_debt:.2f} €'
+            
+            # Regenerate QR code with the correct debt amount
+            self.update_qr_code()
 
     def set_selected_user(self, user_name):
         self.selected_user = user_name
@@ -115,6 +118,7 @@ class PaymentScreen(Screen):
     def get_payment_img_path(self, debt):
         url=f"paypal.me/coffeeataibe/{debt:.2f}"
         # Generate QR code
+        print(url)
         qr = qrcode.QRCode(
             version=1,  # controls the size of the QR Code; 1 is the smallest, and it increases to hold more data
             error_correction=qrcode.constants.ERROR_CORRECT_L,  # controls the error correction used for the QR Code
@@ -131,6 +135,13 @@ class PaymentScreen(Screen):
         path = "payment_tmp.png"
         img.save(path)
         return path 
+
+    def update_qr_code(self):
+        # Generate new QR code with the current debt amount
+        self.payment_img_path = self.get_payment_img_path(self.user_debt)
+        self.payment_img.source = self.payment_img_path
+        # Force the image to reload
+        self.payment_img.reload()
 
     def confirm_payment(self, instance):
         self.data_manager.pay_debt(self.selected_user, self.user_debt)
