@@ -119,12 +119,13 @@ class DataManager:
         two_weeks_ago = datetime.now() - timedelta(weeks=2)
         cur = self.db_conn.cursor()
         cur.execute("""
-            SELECT u.user, 
+            SELECT u.first_name || ' ' || u.surname AS full_name, 
                 COALESCE(SUM(c.price), 0) AS total_consumed, 
                 u.debt AS debt_amount
             FROM users u
-            LEFT JOIN consumed c ON u.user = c.user AND c.time_stamp >= ?
-            GROUP BY u.user, u.debt
+            LEFT JOIN consumed c ON (u.first_name || ' ' || u.surname = c.user OR u.id = c.user_id) 
+                AND c.time_stamp >= ?
+            GROUP BY u.first_name, u.surname, u.debt
         """, (two_weeks_ago,))
         return cur.fetchall()
 
@@ -132,9 +133,10 @@ class DataManager:
         two_weeks_ago = datetime.now() - timedelta(weeks=2)
         cur = self.db_conn.cursor()
         cur.execute("""
-            SELECT user, cleaning_type, credit 
-            FROM cleaning
-            WHERE time_stamp >= ?
+            SELECT u.first_name || ' ' || u.surname AS full_name, cleaning_type, credit 
+            FROM cleaning c
+            LEFT JOIN users u ON (u.first_name || ' ' || u.surname = c.user OR u.id = c.user_id)
+            WHERE c.time_stamp >= ?
         """, (two_weeks_ago,))
         return cur.fetchall()
 
@@ -142,8 +144,9 @@ class DataManager:
         cutoff_date = datetime.now() - timedelta(days=time_window)
         cur = self.db_conn.cursor()
         cur.execute("""
-            SELECT user, cleaning_type, credit, time_stamp
-            FROM cleaning
-            WHERE cleaning_type = ? AND time_stamp >= ?
+            SELECT u.first_name || ' ' || u.surname AS full_name, cleaning_type, credit, time_stamp
+            FROM cleaning c
+            LEFT JOIN users u ON (u.first_name || ' ' || u.surname = c.user OR u.id = c.user_id)
+            WHERE c.cleaning_type = ? AND c.time_stamp >= ?
         """, (product, cutoff_date))
         return cur.fetchall()
