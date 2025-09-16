@@ -13,18 +13,35 @@ class DataManager:
 
     def load_users_and_debts(self):
         cur = self.db_conn.cursor()
-        cur.execute("SELECT user, debt FROM users")
-        return cur.fetchall()
+        cur.execute("SELECT first_name, surname, debt FROM users")
+        results = cur.fetchall()
+        # Return in format (full_name, debt) for compatibility
+        return [(f"{first_name} {surname}".strip(), debt) for first_name, surname, debt in results]
     
-    def check_user_exists(self, user):
+    def check_user_exists(self, first_name, surname):
         cur = self.db_conn.cursor()
-        cur.execute("SELECT * FROM users WHERE user = ?", (user,))
+        cur.execute("SELECT * FROM users WHERE first_name = ? AND surname = ?", (first_name, surname))
         return cur.fetchone()
 
-    def add_new_user(self, user):
+    def check_user_exists_by_name(self, full_name):
+        """Legacy method for backward compatibility"""
+        name_parts = full_name.strip().split(' ', 1)
+        first_name = name_parts[0]
+        surname = name_parts[1] if len(name_parts) > 1 else ''
+        return self.check_user_exists(first_name, surname)
+
+    def add_new_user(self, first_name, surname):
         cur = self.db_conn.cursor()
-        cur.execute("INSERT INTO users (user, debt) VALUES (?, ?)", (user, 0))
+        cur.execute("INSERT INTO users (first_name, surname, debt) VALUES (?, ?, ?)", (first_name, surname, 0))
         self.db_conn.commit()
+        return cur.lastrowid
+
+    def add_new_user_legacy(self, full_name):
+        """Legacy method for backward compatibility"""
+        name_parts = full_name.strip().split(' ', 1)
+        first_name = name_parts[0]
+        surname = name_parts[1] if len(name_parts) > 1 else ''
+        return self.add_new_user(first_name, surname)
 
     def add_cleaning(self, user, product, total_price): 
         # change debt of user 
@@ -35,8 +52,18 @@ class DataManager:
 
     def get_user_debt(self, user):
         cur = self.db_conn.cursor()
-        cur.execute("SELECT debt FROM users WHERE user = ?", (user,))
-        return cur.fetchone()[0]
+        # Support both new format (first_name, surname) and legacy format (full_name)
+        if isinstance(user, tuple) and len(user) == 2:
+            first_name, surname = user
+            cur.execute("SELECT debt FROM users WHERE first_name = ? AND surname = ?", (first_name, surname))
+        else:
+            # Legacy support: try to match by full name
+            name_parts = user.strip().split(' ', 1)
+            first_name = name_parts[0]
+            surname = name_parts[1] if len(name_parts) > 1 else ''
+            cur.execute("SELECT debt FROM users WHERE first_name = ? AND surname = ?", (first_name, surname))
+        result = cur.fetchone()
+        return result[0] if result else 0
     
     def pay_debt(self, user, amount):
         self.update_user_debt(user, 0)
@@ -47,15 +74,39 @@ class DataManager:
     
     def update_user_debt(self, user, debt):
         cur = self.db_conn.cursor()
-        cur.execute("UPDATE users SET debt = ? WHERE user = ?", (debt, user))
+        # Support both new format (first_name, surname) and legacy format (full_name)
+        if isinstance(user, tuple) and len(user) == 2:
+            first_name, surname = user
+            cur.execute("UPDATE users SET debt = ? WHERE first_name = ? AND surname = ?", (debt, first_name, surname))
+        else:
+            # Legacy support: try to match by full name
+            name_parts = user.strip().split(' ', 1)
+            first_name = name_parts[0]
+            surname = name_parts[1] if len(name_parts) > 1 else ''
+            cur.execute("UPDATE users SET debt = ? WHERE first_name = ? AND surname = ?", (debt, first_name, surname))
         self.db_conn.commit()
         
     def _add_product_debt(self, user, price):
         cur = self.db_conn.cursor()
-        cur.execute("SELECT debt FROM users WHERE user = ?", (user,))
-        debt = cur.fetchone()[0]
-        cur.execute("UPDATE users SET debt = ? WHERE user = ?", (debt + price, user))
-        self.db_conn.commit()
+        # Support both new format (first_name, surname) and legacy format (full_name)
+        if isinstance(user, tuple) and len(user) == 2:
+            first_name, surname = user
+            cur.execute("SELECT debt FROM users WHERE first_name = ? AND surname = ?", (first_name, surname))
+        else:
+            # Legacy support: try to match by full name
+            name_parts = user.strip().split(' ', 1)
+            first_name = name_parts[0]
+            surname = name_parts[1] if len(name_parts) > 1 else ''
+            cur.execute("SELECT debt FROM users WHERE first_name = ? AND surname = ?", (first_name, surname))
+        
+        result = cur.fetchone()
+        if result:
+            debt = result[0]
+            if isinstance(user, tuple) and len(user) == 2:
+                cur.execute("UPDATE users SET debt = ? WHERE first_name = ? AND surname = ?", (debt + price, first_name, surname))
+            else:
+                cur.execute("UPDATE users SET debt = ? WHERE first_name = ? AND surname = ?", (debt + price, first_name, surname))
+            self.db_conn.commit()
 
     def add_consumed_product(self, user, product, selected_options, total_price):
         cur = self.db_conn.cursor()

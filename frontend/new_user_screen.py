@@ -25,11 +25,16 @@ class NewUserScreen(Screen):
         back_button.bind(on_press=self.go_back)
         main_layout.add_widget(back_button)
 
-        self.label = Label(text='Enter New User Name:', bold=True, height=90, size_hint_y=None, font_size=24)
+        self.label = Label(text='Enter First Name and Surname:', bold=True, height=90, size_hint_y=None, font_size=24)
         main_layout.add_widget(self.label)
 
-        self.name_input = TextInput(
-            hint_text='Name',
+        # First Name Input
+        first_name_label = Label(text='First Name *', bold=True, size_hint_y=None, height=40, font_size=18, halign='left')
+        first_name_label.bind(size=first_name_label.setter('text_size'))
+        main_layout.add_widget(first_name_label)
+        
+        self.first_name_input = TextInput(
+            hint_text='First Name (required)',
             multiline=False,
             readonly=True,
             background_color=(1, 1, 1, 1),  # White background
@@ -39,12 +44,38 @@ class NewUserScreen(Screen):
             padding_x=(10, 10),
             cursor_color=(0, 0, 0, 1),  # Black cursor color
             size_hint_y=None,
-            height=100,
+            height=80,
             background_normal='',  # Remove the default background
             background_active=''  # Remove the active background
         )
-        self.name_input.bind(focus=self.on_focus)
-        main_layout.add_widget(self.name_input)
+        self.first_name_input.bind(focus=self.on_focus)
+        main_layout.add_widget(self.first_name_input)
+
+        # Surname Input  
+        surname_label = Label(text='Surname *', bold=True, size_hint_y=None, height=40, font_size=18, halign='left')
+        surname_label.bind(size=surname_label.setter('text_size'))
+        main_layout.add_widget(surname_label)
+
+        self.surname_input = TextInput(
+            hint_text='Surname (required)',
+            multiline=False,
+            readonly=True,
+            background_color=(1, 1, 1, 1),  # White background
+            foreground_color=(0, 0, 0, 1),  # Black text color
+            font_size=24,
+            padding_y=(10, 10),
+            padding_x=(10, 10),
+            cursor_color=(0, 0, 0, 1),  # Black cursor color
+            size_hint_y=None,
+            height=80,
+            background_normal='',  # Remove the default background
+            background_active=''  # Remove the active background
+        )
+        self.surname_input.bind(focus=self.on_focus)
+        main_layout.add_widget(self.surname_input)
+
+        # Keep track of which input is currently active
+        self.active_input = None
 
         self.keyboard_layout = self.create_keyboard()
         main_layout.add_widget(self.keyboard_layout)
@@ -60,9 +91,10 @@ class NewUserScreen(Screen):
 
     def on_focus(self, instance, value):
         if value:
-            self.name_input.background_color = (0.9, 0.9, 0.9, 1)  # Light gray when focused
+            instance.background_color = (0.9, 0.9, 0.9, 1)  # Light gray when focused
+            self.active_input = instance
         else:
-            self.name_input.background_color = (1, 1, 1, 1)  # White when unfocused
+            instance.background_color = (1, 1, 1, 1)  # White when unfocused
 
     def create_keyboard(self):
         keyboard_layout = GridLayout(cols=10, size_hint_y=None, height=300)
@@ -72,7 +104,7 @@ class NewUserScreen(Screen):
             'Q','W','E','R','T','Y','U','I','O','P',
             'A','S','D','F','G','H','J','K','L',
             'Z','X','C','V','B','N','M',
-            'Space', 'Backspace'
+            'Space', 'Next Field', 'Backspace'
         ]
 
         for key in keys:
@@ -83,54 +115,96 @@ class NewUserScreen(Screen):
         return keyboard_layout
     
     def on_pre_enter(self):
-        self.name_input.text = ''
+        self.first_name_input.text = ''
+        self.surname_input.text = ''
+        self.active_input = self.first_name_input
+        self.first_name_input.focus = True
 
     def on_key_press(self, instance):
-        current_text = self.name_input.text
+        if not self.active_input:
+            self.active_input = self.first_name_input
+        
+        current_text = self.active_input.text
         key = instance.text
 
         if key == 'Backspace':
-            self.name_input.text = current_text[:-1]
+            self.active_input.text = current_text[:-1]
         elif key == 'Space':
-            self.name_input.text += ' '
+            self.active_input.text += ' '
+        elif key == 'Next Field':
+            # Switch between fields
+            if self.active_input == self.first_name_input:
+                self.active_input = self.surname_input
+                self.surname_input.focus = True
+            else:
+                self.active_input = self.first_name_input
+                self.first_name_input.focus = True
         else:
-            self.name_input.text += key
+            self.active_input.text += key
 
-    def confirm_user_name(self, user_name):
-        self.data_manager.add_new_user(user_name)
-        self.popup.dismiss()
-        App.get_running_app().sm.current = 'main'
+    def confirm_user_name(self, first_name, surname):
+        try:
+            self.data_manager.add_new_user(first_name, surname)
+            self.popup.dismiss()
+            App.get_running_app().sm.current = 'main'
+        except Exception as e:
+            # Handle database constraint errors
+            self.show_error_popup("Error creating user: " + str(e))
 
     def show_confirmation_popup(self, instance):
-        user_name = self.name_input.text.strip()
-        if user_name:
-            if self.data_manager.check_user_exists(user_name):
-                self.show_user_exists_popup(user_name)
-            else:
-                self.show_confirm_user_popup(user_name)
+        first_name = self.first_name_input.text.strip()
+        surname = self.surname_input.text.strip()
+        
+        # Validate required fields
+        if not first_name:
+            self.show_error_popup("First Name is required!")
+            return
+        
+        if not surname:
+            self.show_error_popup("Surname is required!")
+            return
+            
+        # Check if user already exists
+        if self.data_manager.check_user_exists(first_name, surname):
+            self.show_user_exists_popup(first_name, surname)
+        else:
+            self.show_confirm_user_popup(first_name, surname)
 
-    def show_user_exists_popup(self, user_name):
+    def show_error_popup(self, message):
         content = BoxLayout(orientation='vertical', spacing=10, padding=10)
-        content.add_widget(Label(text=f'The username "{user_name}" already exists.'))
+        content.add_widget(Label(text=message, text_size=(350, None), halign='center'))
 
         ok_button = Button(text='OK', size_hint_y=None, height=50)
         ok_button.bind(on_press=lambda x: self.popup.dismiss())
         content.add_widget(ok_button)
 
-        self.popup = Popup(title='User Exists', content=content, size_hint=(None, None), size=(400, 200))
+        self.popup = Popup(title='Error', content=content, size_hint=(None, None), size=(400, 200))
         self.popup.open()
 
-    def show_confirm_user_popup(self, user_name):
+    def show_user_exists_popup(self, first_name, surname):
         content = BoxLayout(orientation='vertical', spacing=10, padding=10)
-        content.add_widget(Label(text=f'Create user {user_name}?'))
+        content.add_widget(Label(text=f'A user with the name "{first_name} {surname}" already exists.\nPlease choose a different name.', 
+                                text_size=(350, None), halign='center'))
+
+        ok_button = Button(text='OK', size_hint_y=None, height=50)
+        ok_button.bind(on_press=lambda x: self.popup.dismiss())
+        content.add_widget(ok_button)
+
+        self.popup = Popup(title='User Already Exists', content=content, size_hint=(None, None), size=(400, 250))
+        self.popup.open()
+
+    def show_confirm_user_popup(self, first_name, surname):
+        content = BoxLayout(orientation='vertical', spacing=10, padding=10)
+        content.add_widget(Label(text=f'Create user "{first_name} {surname}"?', 
+                                text_size=(350, None), halign='center'))
 
         buttons_layout = BoxLayout(size_hint_y=None, height=50)
-        yes_button = Button(text='Yes', on_press=lambda x: self.confirm_user_name(user_name))
+        yes_button = Button(text='Yes', on_press=lambda x: self.confirm_user_name(first_name, surname))
         no_button = Button(text='No', on_press=lambda x: self.popup.dismiss())
         buttons_layout.add_widget(yes_button)
         buttons_layout.add_widget(no_button)
 
         content.add_widget(buttons_layout)
 
-        self.popup = Popup(title='Confirm User Name', content=content, size_hint=(None, None), size=(400, 200))
+        self.popup = Popup(title='Confirm User Creation', content=content, size_hint=(None, None), size=(400, 200))
         self.popup.open()
