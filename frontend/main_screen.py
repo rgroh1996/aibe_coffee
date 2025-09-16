@@ -6,8 +6,9 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivy.app import App
+from frontend.touch_activity_mixin import TouchActivityMixin
 
-class MainScreen(Screen):
+class MainScreen(TouchActivityMixin, Screen):
     accepted_debt = 10
     def __init__(self, data_manager, **kwargs):
         super(MainScreen, self).__init__(**kwargs)

@@ -6,9 +6,10 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.popup import Popup
 from kivy.app import App
+from frontend.touch_activity_mixin import TouchActivityMixin
 
 
-class NewUserScreen(Screen):
+class NewUserScreen(TouchActivityMixin, Screen):
     def __init__(self, data_manager, **kwargs):
         super(NewUserScreen, self).__init__(**kwargs)
         self.data_manager = data_manager

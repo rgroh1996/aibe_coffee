@@ -8,11 +8,12 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.image import Image
 from kivy.app import App
+from frontend.touch_activity_mixin import TouchActivityMixin
 
 import qrcode
 
 
-class ContributeScreen(Screen):
+class ContributeScreen(TouchActivityMixin, Screen):
     def __init__(self, **kwargs):
         super(ContributeScreen, self).__init__(**kwargs)
         self.repo_url = "https://github.com/rgroh1996/aibe_coffee"

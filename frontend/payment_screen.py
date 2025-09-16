@@ -4,10 +4,11 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.image import Image
 from kivy.app import App
+from frontend.touch_activity_mixin import TouchActivityMixin
 
 import qrcode
 
-class PaymentScreen(Screen):
+class PaymentScreen(TouchActivityMixin, Screen):
     def __init__(self, data_manager,**kwargs):
         super(PaymentScreen, self).__init__(**kwargs)
         self.data_manager = data_manager

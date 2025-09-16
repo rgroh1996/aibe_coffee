@@ -5,10 +5,11 @@ from kivy.uix.screenmanager import Screen
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivy.app import App
+from frontend.touch_activity_mixin import TouchActivityMixin
 
 import json
 
-class SelectCoffeeScreen(Screen):
+class SelectCoffeeScreen(TouchActivityMixin, Screen):
     def __init__(self, data_manager, **kwargs):
         super(SelectCoffeeScreen, self).__init__(**kwargs)
         self.data_manager = data_manager
