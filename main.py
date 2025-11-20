@@ -16,7 +16,7 @@ import argparse
 
 from backend.data_manager import DataManager
 from backend.shelly_log import log_voltage_main, test_connection
-
+from widgets.goose_widget import GooseOverlay
 # Set configuration for full screen mode
 #Config.set('graphics', 'fullscreen', 'auto')
 
@@ -30,7 +30,6 @@ class CoffeeListApp(App):
     def build(self):
         # Root-Layout:  overlays screens and emoji
         self.root_layout = FloatLayout()
-
         # initialize the data manager
         self.data_manager = DataManager("database/aibe_coffee.db")
 
@@ -55,6 +54,9 @@ class CoffeeListApp(App):
         )
         self.root_layout.add_widget(self.emoji_label)
 
+        self.goose_overlay = GooseOverlay()
+        self.root_layout.add_widget(self.goose_overlay)
+
         return self.root_layout
     
     def show_global_emoji(self, emoji, duration=3):
@@ -65,6 +67,9 @@ class CoffeeListApp(App):
         self.emoji_label.text = ''
 
 
+    def walk_goose(self):
+        if hasattr(self, 'goose_overlay'):
+            self.goose_overlay.walk_across()
 
 
 if __name__ == '__main__':

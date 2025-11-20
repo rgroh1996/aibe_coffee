@@ -156,9 +156,9 @@ class MainScreen(Screen):
                 self.show_payment_popup_lvl2(lambda: self.on_user_button_press_after(selected_user), exclamation_mark=i + 1)
 
         # Personalized Message
-        #if selected_user == '5TR':
-        #    App.get_running_app().show_global_emoji("Hello 5TR!")
-
+        if selected_user == 'MISCHA':
+           #App.get_running_app().show_global_emoji("Hello 5TR!")
+           App.get_running_app().walk_goose()
 
         self.on_user_button_press_after(selected_user)
 
