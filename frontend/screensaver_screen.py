@@ -1,9 +1,10 @@
 from kivy.uix.screenmanager import Screen
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.label import Label
+from kivy.uix.image import Image
 from kivy.clock import Clock
 from kivy.animation import Animation
-from datetime import datetime
+from kivy.animation import Animation
 import random
 
 
@@ -15,15 +16,14 @@ class ScreensaverScreen(Screen):
         self.layout = FloatLayout()
         self.add_widget(self.layout)
         
-        # Create animated coffee logo/text
-        self.coffee_label = Label(
-            text='☕',
-            font_size='120sp',
-            color=(0.8, 0.6, 0.4, 1),  # Coffee brown color
+        # Create animated coffee logo/image
+        self.coffee_image = Image(
+            source='aibe_coffee.png',
             pos_hint={'center_x': 0.5, 'center_y': 0.6},
-            size_hint=(None, None)
+            size_hint=(None, None),
+            size=('300dp', '300dp')
         )
-        self.layout.add_widget(self.coffee_label)
+        self.layout.add_widget(self.coffee_image)
         
         # App title
         self.title_label = Label(
@@ -35,15 +35,7 @@ class ScreensaverScreen(Screen):
         )
         self.layout.add_widget(self.title_label)
         
-        # Time display
-        self.time_label = Label(
-            text='',
-            font_size='30sp',
-            color=(0.6, 0.6, 0.6, 1),  # Gray
-            pos_hint={'center_x': 0.5, 'center_y': 0.2},
-            size_hint=(None, None)
-        )
-        self.layout.add_widget(self.time_label)
+        
         
         # Touch instruction
         self.instruction_label = Label(
@@ -57,7 +49,7 @@ class ScreensaverScreen(Screen):
         
         # Animation and clock events
         self.coffee_animation = None
-        self.time_clock = None
+        self.quote_clock = None
         
         # Coffee quotes for variety
         self.coffee_quotes = [
@@ -71,28 +63,23 @@ class ScreensaverScreen(Screen):
         
     def on_enter(self):
         """Called when screensaver becomes active"""
-        # Update time display
-        self.update_time()
-        self.time_clock = Clock.schedule_interval(self.update_time, 1)
         
         # Start coffee emoji animation
         self.start_coffee_animation()
         
         # Occasionally show coffee quotes
         self.show_random_quote()
+        self.quote_clock = Clock.schedule_interval(lambda dt: self.show_random_quote(), 10)
         
     def on_leave(self):
         """Called when leaving screensaver"""
         # Stop all animations and clocks
-        if self.time_clock:
-            self.time_clock.cancel()
         if self.coffee_animation:
-            self.coffee_animation.stop(self.coffee_label)
+            self.coffee_animation.stop(self.coffee_image)
+        if self.quote_clock:
+            self.quote_clock.cancel()
             
-    def update_time(self, dt=None):
-        """Update the time display"""
-        current_time = datetime.now().strftime('%H:%M:%S')
-        self.time_label.text = current_time
+            
         
     def start_coffee_animation(self):
         """Start subtle floating animation for coffee emoji"""
@@ -104,16 +91,13 @@ class ScreensaverScreen(Screen):
         # Chain animations in a loop
         anim_sequence = anim1 + anim2 + anim3
         anim_sequence.repeat = True
-        anim_sequence.start(self.coffee_label)
+        anim_sequence.start(self.coffee_image)
         self.coffee_animation = anim_sequence
         
     def show_random_quote(self):
-        """Occasionally show a coffee quote instead of the title"""
-        if random.random() < 0.3:  # 30% chance to show quote
-            quote = random.choice(self.coffee_quotes)
-            self.title_label.text = quote
-            # Reset to original title after some time
-            Clock.schedule_once(lambda dt: setattr(self.title_label, 'text', 'AIBE Coffee'), 5)
+        """Show a random coffee quote"""
+        quote = random.choice(self.coffee_quotes)
+        self.title_label.text = quote
             
     def on_touch_down(self, touch):
         """Handle any touch to wake up from screensaver"""

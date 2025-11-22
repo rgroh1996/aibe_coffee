@@ -4,9 +4,6 @@ import sys
 # Disable Kivy's argument parser before importing Kivy
 os.environ['KIVY_NO_ARGS'] = '1'
 
-# Import mock dependencies first for testing
-import mock_dependencies
-
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.screenmanager import ScreenManager
@@ -17,6 +14,7 @@ from frontend.new_user_screen import NewUserScreen
 from frontend.cleaning_screen import CleaningScreen
 from frontend.contribute_screen import ContributeScreen
 from frontend.screensaver_screen import ScreensaverScreen
+from frontend.black_screen import BlackScreen
 from kivy.config import Config
 from kivy.uix.label import Label
 from kivy.clock import Clock
@@ -54,6 +52,7 @@ class CoffeeListApp(App):
         self.sm.add_widget(CleaningScreen(name='cleaning', data_manager=self.data_manager))
         self.sm.add_widget(ContributeScreen(name='contribute_screen'))
         self.sm.add_widget(ScreensaverScreen(name='screensaver'))
+        self.sm.add_widget(BlackScreen(name='black_screen'))
 
         # Initialize touch activity tracker after screen manager is ready
         self.touch_tracker = TouchActivityTracker.get_instance()
