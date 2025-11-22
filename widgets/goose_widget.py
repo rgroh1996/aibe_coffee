@@ -16,10 +16,10 @@ class GooseOverlay(FloatLayout):
 
         # Liste deiner Watschel-Frames
         self.frames = [
-            'goose_0.png',
-            'goose_1.png',
-            'goose_2.png',
-            'goose_1.png',  # zurück für smooth loop
+            'assets/goose_0.png',
+            'assets/goose_1.png',
+            'assets/goose_2.png',
+            'assets/goose_1.png',  # zurück für smooth loop
         ]
         self.current_frame = 0
         self._anim_ev = None  # Clock-Event für Framewechsel
