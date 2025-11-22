@@ -1,3 +1,9 @@
+import os
+import sys
+
+# Disable Kivy's argument parser before importing Kivy
+os.environ['KIVY_NO_ARGS'] = '1'
+
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.screenmanager import ScreenManager
@@ -6,7 +12,9 @@ from frontend.select_coffee_screen import SelectCoffeeScreen
 from frontend.payment_screen import PaymentScreen
 from frontend.new_user_screen import NewUserScreen
 from frontend.cleaning_screen import CleaningScreen
-from frontend.contribute_screen import ContributeScreen 
+from frontend.contribute_screen import ContributeScreen
+from frontend.screensaver_screen import ScreensaverScreen
+from frontend.black_screen import BlackScreen
 from kivy.config import Config
 from kivy.uix.label import Label
 from kivy.clock import Clock
@@ -17,6 +25,8 @@ import argparse
 from backend.data_manager import DataManager
 from backend.shelly_log import log_voltage_main, test_connection
 from widgets.goose_widget import GooseOverlay
+from backend.touch_activity_tracker import TouchActivityTracker
+
 # Set configuration for full screen mode
 #Config.set('graphics', 'fullscreen', 'auto')
 
@@ -41,6 +51,11 @@ class CoffeeListApp(App):
         self.sm.add_widget(NewUserScreen(name='new_user', data_manager=self.data_manager))
         self.sm.add_widget(CleaningScreen(name='cleaning', data_manager=self.data_manager))
         self.sm.add_widget(ContributeScreen(name='contribute_screen'))
+        self.sm.add_widget(ScreensaverScreen(name='screensaver'))
+        self.sm.add_widget(BlackScreen(name='black_screen'))
+
+        # Initialize touch activity tracker after screen manager is ready
+        self.touch_tracker = TouchActivityTracker.get_instance()
 
         # add ScreenManager to Layout 
         self.root_layout.add_widget(self.sm)
@@ -76,7 +91,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Start the Coffee List App with optional voltage logging.')
     parser.add_argument('--noshelly', action='store_true', help='Do not start the smart plug voltage logging.')
     args = parser.parse_args()
-
+    
     # Signal for background thread to stop
     stop_signal = threading.Event()
 

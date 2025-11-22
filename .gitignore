@@ -4,3 +4,8 @@
 shelly_log/
 *.db
 **/.DS_Store
+
+# Temporary test files (can be removed after testing)
+mock_dependencies.py
+test_screensaver.py
+screensaver_demo.py
