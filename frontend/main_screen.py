@@ -13,12 +13,13 @@ class MainScreen(TouchActivityMixin, Screen):
     def __init__(self, data_manager, **kwargs):
         super(MainScreen, self).__init__(**kwargs)
         self.data_manager = data_manager
+        self._cached_users = []
 
         layout = BoxLayout(orientation='vertical')
         self.add_widget(layout)
-        
+
         # Layout for the alphabet buttons
-        alphabet_layout = BoxLayout(orientation='horizontal', size_hint=(1, 0.3))
+        alphabet_layout = BoxLayout(orientation='horizontal', size_hint=(1, 0.26))
         layout.add_widget(alphabet_layout)
 
         # Add alphabet buttons
@@ -29,27 +30,27 @@ class MainScreen(TouchActivityMixin, Screen):
             letter_button = Button(text=letter, size_hint=(1, 1), background_color=(0.8, 0.8, 0.8, 1))
             letter_button.bind(on_press=self.filter_users_by_letter)
             alphabet_grid.add_widget(letter_button)
-            letter_button.font_size = '26sp'
+            letter_button.font_size = '22sp'
             letter_button.spacing = (3, 3)
             letter_button.halign = 'center'
-        
+
         # add another option "all" to show all users
-        all_button = Button(text='Rank', size_hint=(1, 1), background_color=(0.8, 0.8, 0.8, 1))
+        all_button = Button(text='Rank', size_hint=(1, 1), background_color=(1, 0.6, 0.4, 1))
         all_button.bind(on_press=self.update_user_list)
         alphabet_grid.add_widget(all_button)
-        all_button.font_size = '26sp'
-        all_button.spacing = (3, 3)            
+        all_button.font_size = '22sp'
+        all_button.spacing = (3, 3)
 
         # Button to contribute
         contribute_button = Button(text='Contribute', size_hint=(1, 0.1), background_color=(0.4, 0.6, 1, 1), height=20)
         contribute_button.bind(on_press=self.go_to_contribute_screen)
         layout.add_widget(contribute_button)
-        
+
         # Scrollable list of user buttons
         self.scroll_view = ScrollView(size_hint=(1, 0.9))
         self.user_layout = GridLayout(cols=1, spacing=10, size_hint_y=None)
         self.user_layout.bind(minimum_height=self.user_layout.setter('height'))
-        
+
         self.scroll_view.add_widget(self.user_layout)
         layout.add_widget(self.scroll_view)
         # Button to add new user
@@ -57,7 +58,7 @@ class MainScreen(TouchActivityMixin, Screen):
         add_user_button.bind(on_press=self.go_to_add_user_screen)
         layout.add_widget(add_user_button)
 
-    
+
     def get_users_with_total_scores(self):
         users = self.data_manager.get_users_recently_consumed()
         cleanings = self.data_manager.get_recent_cleanings()
@@ -72,39 +73,48 @@ class MainScreen(TouchActivityMixin, Screen):
 
         # Add credit to the score for each user
         users_with_total_scores = []
-        for user, score, debt in users:
-            debt = max(debt, 0) # no money for users who only clean but do not drink 
+        for user, score, debt, lab in users:
+            debt = max(debt, 0) # no money for users who only clean but do not drink
             total_score = score + user_credits.get(user, 0)  # Add the credit to the score
-            users_with_total_scores.append([user, total_score, debt])
+            users_with_total_scores.append([user, total_score, debt, user, lab if lab else ''])
 
         users_with_total_scores.sort(key=lambda x: x[1], reverse=True)
         users_with_total_scores = [x + [y,] for x, y in zip(users_with_total_scores, range(1, len(users_with_total_scores) + 1))]
         return users_with_total_scores
 
+    def _create_user_button(self, display_name, score, debt, db_user, lab, rank):
+        button_color = (0.6, 0.4, 1, 1) if debt < self.accepted_debt else (1, 0.4, 0.6, 1)
+        lab_tag = f"  [{lab}]" if lab else ""
+        line1 = f"{display_name}{lab_tag}"
+        line2 = f"#{rank}  |  Score: {score:.1f}  |  Debt: {debt:.2f}"
+        if debt >= self.accepted_debt:
+            line2 += "  |  Pay up!"
+        button_text = f"{line1}\n{line2}"
+        user_button = Button(text=button_text,
+            size_hint_y=None,
+            height=80,
+            font_size='22sp',
+            bold=True,
+            halign='center',
+            valign='middle',
+            padding=(15, 15),
+            background_color=button_color)
+        user_button.bind(size=lambda inst, val: setattr(inst, 'text_size', (val[0], None)))
+        user_button.db_user = db_user
+        user_button.debt = debt
+        user_button.bind(on_press=self.on_user_button_press)
+        return user_button
+
     def filter_users_by_letter(self, instance):
         selected_letter = instance.text
-        users = self.get_users_with_total_scores()
         filtered_users = []
-        for user_row in users: 
+        for user_row in self._cached_users:
             if user_row[0].startswith(selected_letter):
                 filtered_users.append(user_row)
 
         self.user_layout.clear_widgets()
-        for user, score, debt, rank in filtered_users:
-            button_color = (0.6, 0.4, 1, 1) if debt < self.accepted_debt else (1, 0.4, 0.6, 1)
-            button_text = f'{user} \n Rank {rank} - Two Week Score: {score:.2f} - Debt: {debt:.2f} '
-            if debt >= self.accepted_debt: 
-                button_text += " - Pay up!"
-            user_button = Button(text=button_text, 
-                size_hint_y=None, 
-                height=80,
-                font_size='30sp',
-                bold=True,
-                halign='center',
-                valign='middle',
-                padding=(15, 15),
-                background_color=button_color)
-            user_button.bind(on_press=self.on_user_button_press)
+        for display_name, score, debt, db_user, lab, rank in filtered_users:
+            user_button = self._create_user_button(display_name, score, debt, db_user, lab, rank)
             self.user_layout.add_widget(user_button)
 
         self.scroll_view.scroll_y = 1.0
@@ -114,57 +124,40 @@ class MainScreen(TouchActivityMixin, Screen):
 
     def update_user_list(self, instance=None):
         self.user_layout.clear_widgets()
-        users = self.get_users_with_total_scores()
-        for user, score, debt, rank in users:
-            button_color = (0.6, 0.4, 1, 1) if debt < self.accepted_debt else (1, 0.4, 0.6, 1)
-            button_text = f'{user} \n Rank {rank} - Two Week Score: {score:.2f} - Debt: {debt:.2f} ' 
-            if debt >= self.accepted_debt: 
-                button_text += " - Pay up!"
-            user_button = Button(text=button_text, 
-                size_hint_y=None, 
-                height=80,
-                font_size='30sp',
-                bold=True,
-                halign='center',
-                valign='middle',
-                padding=(15, 15),
-                background_color=button_color)
-            user_button.bind(on_press=self.on_user_button_press)
+        self._cached_users = self.get_users_with_total_scores()
+        for display_name, score, debt, db_user, lab, rank in self._cached_users:
+            user_button = self._create_user_button(display_name, score, debt, db_user, lab, rank)
             self.user_layout.add_widget(user_button)
-        
+
         # Scroll to top only when called from Rank button
         self.scroll_view.scroll_y = 1.0
 
     def on_user_button_press(self, instance):
-        selected_user = instance.text.split(' \n')[0]
-        print(f"Selected user: {selected_user}")
+        db_user = instance.db_user
+        debt = instance.debt
+        print(f"Selected user: {db_user}")
 
-        # Retrieve data 
-        users = self.get_users_with_total_scores()
-        user_data = next((u for u in users if u[0] == selected_user), None)
-
-        if not user_data:
-            return
-
-        user, score, debt, rank = user_data
-
-        # If debt > high 
         if debt > 10:
-            self.show_payment_popup(lambda: self.on_user_button_press_after(selected_user))
+            self.show_payment_popup(lambda: self.on_user_button_press_after(db_user))
 
         if debt > 12:
             for i in range(int(debt - 12)):
-                self.show_payment_popup_lvl2(lambda: self.on_user_button_press_after(selected_user), exclamation_mark=i + 1)
+                self.show_payment_popup_lvl2(lambda: self.on_user_button_press_after(db_user), exclamation_mark=i + 1)
 
         # Personalized Message
-        if selected_user == 'MISCHA':
-           #App.get_running_app().show_global_emoji("Hello 5TR!")
+        if db_user == 'MISCHA':
            App.get_running_app().walk_goose()
 
-        self.on_user_button_press_after(selected_user)
+        self.on_user_button_press_after(db_user)
 
     def on_user_button_press_after(self, selected_user):
         app = App.get_running_app()
+
+        if not self.data_manager.is_profile_complete(selected_user):
+            app.sm.current = 'user_profile'
+            app.sm.get_screen('user_profile').set_old_username(selected_user)
+            return
+
         app.sm.current = 'select_coffee'
         app.sm.get_screen('select_coffee').set_selected_user(selected_user)
 
@@ -201,7 +194,7 @@ class MainScreen(TouchActivityMixin, Screen):
         btn.bind(on_press=lambda instance: self.dismiss_popup_and_continue(popup, on_dismiss_callback))
         popup.open()
 
-    
+
     def show_payment_popup_lvl2(self, on_dismiss_callback, exclamation_mark):
 
         label = Label(
