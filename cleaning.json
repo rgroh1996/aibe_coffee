@@ -10,7 +10,13 @@
                 "id": 2,
                 "name": "Side Compartment Cleaning",
                 "price": -1.50,
-                "downtime": 7 
+                "downtime": 7
+            },
+            {
+                "id": 3,
+                "name": "Dishwasher ausräumen",
+                "price": -0.30,
+                "downtime": 0.0833
             }
         ]
     }
