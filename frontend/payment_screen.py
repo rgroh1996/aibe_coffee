@@ -146,4 +146,6 @@ class PaymentScreen(TouchActivityMixin, Screen):
 
     def confirm_payment(self, instance):
         self.data_manager.pay_debt(self.selected_user, self.user_debt)
-        App.get_running_app().sm.current = 'main'
+        app = App.get_running_app()
+        app.sm.get_screen('main').mark_stale()
+        app.sm.current = 'main'

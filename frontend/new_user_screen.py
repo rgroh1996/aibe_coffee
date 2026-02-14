@@ -191,7 +191,9 @@ class NewUserScreen(TouchActivityMixin, Screen):
     def confirm_user_name(self, first_name, last_name, lab):
         self.data_manager.add_new_user(first_name, last_name, lab)
         self.popup.dismiss()
-        App.get_running_app().sm.current = 'main'
+        app = App.get_running_app()
+        app.sm.get_screen('main').mark_stale()
+        app.sm.current = 'main'
 
     def show_confirmation_popup(self, instance):
         first_name = self.first_name_input.text.strip()

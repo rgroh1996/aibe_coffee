@@ -152,6 +152,7 @@ class CleaningScreen(TouchActivityMixin, Screen):
             self.manager.get_screen('select_coffee').reset_layout() # turn button grey
 
             # return to main
+            self.manager.get_screen('main').mark_stale()
             self.manager.current = 'main'
             self.popup.dismiss()
 

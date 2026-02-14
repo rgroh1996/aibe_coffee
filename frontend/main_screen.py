@@ -6,6 +6,7 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivy.app import App
+from kivy.clock import Clock
 from frontend.touch_activity_mixin import TouchActivityMixin
 
 class MainScreen(TouchActivityMixin, Screen):
@@ -14,6 +15,7 @@ class MainScreen(TouchActivityMixin, Screen):
         super(MainScreen, self).__init__(**kwargs)
         self.data_manager = data_manager
         self._cached_users = []
+        self._needs_refresh = True
 
         layout = BoxLayout(orientation='vertical')
         self.add_widget(layout)
@@ -119,8 +121,12 @@ class MainScreen(TouchActivityMixin, Screen):
 
         self.scroll_view.scroll_y = 1.0
 
-    def on_pre_enter(self):
-        self.update_user_list()
+    def mark_stale(self):
+        self._needs_refresh = True
+
+    def on_enter(self, *args):
+        if self._needs_refresh:
+            Clock.schedule_once(lambda dt: self.update_user_list())
 
     def update_user_list(self, instance=None):
         self.user_layout.clear_widgets()
@@ -129,7 +135,7 @@ class MainScreen(TouchActivityMixin, Screen):
             user_button = self._create_user_button(display_name, score, debt, db_user, lab, rank)
             self.user_layout.add_widget(user_button)
 
-        # Scroll to top only when called from Rank button
+        self._needs_refresh = False
         self.scroll_view.scroll_y = 1.0
 
     def on_user_button_press(self, instance):

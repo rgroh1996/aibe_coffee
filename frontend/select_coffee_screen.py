@@ -250,7 +250,9 @@ class SelectCoffeeScreen(TouchActivityMixin, Screen):
                     
             selected_options = ','.join([option['name'] for option in selected_product_data['options'] if option['selected']])
             self.data_manager.add_consumed_product(self.selected_user, self.selected_product.split(' - ')[0], selected_options, total_price)
-            App.get_running_app().sm.current = 'main'
+            app = App.get_running_app()
+            app.sm.get_screen('main').mark_stale()
+            app.sm.current = 'main'
 
         
     def pay_debts(self, button):

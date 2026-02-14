@@ -204,6 +204,7 @@ class UserProfileScreen(TouchActivityMixin, Screen):
         new_display_name = f"{first_name} {last_name}"
 
         app = App.get_running_app()
+        app.sm.get_screen('main').mark_stale()
         app.sm.current = 'select_coffee'
         app.sm.get_screen('select_coffee').set_selected_user(new_display_name)
 
