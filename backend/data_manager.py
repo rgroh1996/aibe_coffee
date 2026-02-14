@@ -11,20 +11,55 @@ class DataManager:
         except Error as e:
             print(e)
 
+        self._migrate_profile_columns()
+
+    def _migrate_profile_columns(self):
+        cur = self.db_conn.cursor()
+        for col in ['first_name', 'last_name', 'lab']:
+            try:
+                cur.execute(f"ALTER TABLE users ADD COLUMN {col} TEXT")
+            except Exception:
+                pass  # column already exists
+        self.db_conn.commit()
+
     def load_users_and_debts(self):
         cur = self.db_conn.cursor()
         cur.execute("SELECT user, debt FROM users")
         return cur.fetchall()
     
-    def check_user_exists(self, user):
+    def check_user_exists(self, first_name, last_name):
         cur = self.db_conn.cursor()
-        cur.execute("SELECT * FROM users WHERE user = ?", (user,))
+        cur.execute("SELECT * FROM users WHERE first_name = ? AND last_name = ?", (first_name, last_name))
         return cur.fetchone()
 
-    def add_new_user(self, user):
+    def add_new_user(self, first_name, last_name, lab):
+        display_name = f"{first_name} {last_name}"
         cur = self.db_conn.cursor()
-        cur.execute("INSERT INTO users (user, debt) VALUES (?, ?)", (user, 0))
+        cur.execute("INSERT INTO users (user, debt, first_name, last_name, lab) VALUES (?, ?, ?, ?, ?)",
+                    (display_name, 0, first_name, last_name, lab))
         self.db_conn.commit()
+
+    def is_profile_complete(self, user):
+        cur = self.db_conn.cursor()
+        cur.execute("SELECT first_name, last_name, lab FROM users WHERE user = ?", (user,))
+        row = cur.fetchone()
+        if not row:
+            return False
+        return all(val is not None for val in row)
+
+    def complete_profile(self, old_username, first_name, last_name, lab):
+        new_name = f"{first_name} {last_name}"
+        cur = self.db_conn.cursor()
+        try:
+            cur.execute("UPDATE users SET user = ?, first_name = ?, last_name = ?, lab = ? WHERE user = ?",
+                        (new_name, first_name, last_name, lab, old_username))
+            cur.execute("UPDATE consumed SET user = ? WHERE user = ?", (new_name, old_username))
+            cur.execute("UPDATE cleaning SET user = ? WHERE user = ?", (new_name, old_username))
+            cur.execute("UPDATE debt_paid SET user = ? WHERE user = ?", (new_name, old_username))
+            self.db_conn.commit()
+        except Exception:
+            self.db_conn.rollback()
+            raise
 
     def add_cleaning(self, user, product, total_price): 
         # change debt of user 
@@ -68,12 +103,13 @@ class DataManager:
         two_weeks_ago = datetime.now() - timedelta(weeks=2)
         cur = self.db_conn.cursor()
         cur.execute("""
-            SELECT u.user, 
-                COALESCE(SUM(c.price), 0) AS total_consumed, 
-                u.debt AS debt_amount
+            SELECT u.user,
+                COALESCE(SUM(c.price), 0) AS total_consumed,
+                u.debt AS debt_amount,
+                u.lab
             FROM users u
             LEFT JOIN consumed c ON u.user = c.user AND c.time_stamp >= ?
-            GROUP BY u.user, u.debt
+            GROUP BY u.user, u.debt, u.lab
         """, (two_weeks_ago,))
         return cur.fetchall()
 

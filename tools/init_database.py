@@ -25,6 +25,11 @@ def init_table(db_conn):
     cur.execute("CREATE TABLE IF NOT EXISTS consumed (id INTEGER PRIMARY KEY, user TEXT, product TEXT, options TEXT, price REAL, time_stamp TEXT)")
     cur.execute("CREATE TABLE IF NOT EXISTS debt_paid (id INTEGER PRIMARY KEY, user TEXT, amount REAL, time_stamp TEXT)")
     cur.execute("CREATE TABLE IF NOT EXISTS cleaning (id INTEGER PRIMARY KEY, user TEXT, cleaning_type TEXT, time_stamp TEXT)")
+
+    # Indexes for the queries that filter on time_stamp and join on user
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_consumed_user_timestamp ON consumed (user, time_stamp)")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_cleaning_timestamp ON cleaning (time_stamp)")
+
     db_conn.commit()
 
 def migrate_database(db_conn):
@@ -37,6 +42,14 @@ def migrate_database(db_conn):
     if not cur.fetchone():
         cur.execute("CREATE TABLE cleaning (id INTEGER PRIMARY KEY, user TEXT, cleaning_type TEXT, credit REAL, time_stamp TEXT)")
         db_conn.commit()
+
+    # Add profile columns if missing
+    for col in ['first_name', 'last_name', 'lab']:
+        try:
+            cur.execute(f"ALTER TABLE users ADD COLUMN {col} TEXT")
+        except Exception:
+            pass  # column already exists
+    db_conn.commit()
 
 
 if __name__ == '__main__':
