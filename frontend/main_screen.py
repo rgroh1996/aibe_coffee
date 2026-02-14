@@ -15,7 +15,9 @@ class MainScreen(TouchActivityMixin, Screen):
         super(MainScreen, self).__init__(**kwargs)
         self.data_manager = data_manager
         self._cached_users = []
+        self._all_buttons = []
         self._needs_refresh = True
+        self._height_setter = self.user_layout.setter('height')
 
         layout = BoxLayout(orientation='vertical')
         self.add_widget(layout)
@@ -107,20 +109,23 @@ class MainScreen(TouchActivityMixin, Screen):
         user_button.bind(on_press=self.on_user_button_press)
         return user_button
 
-    def _rebuild_buttons(self, users):
+    def _show_buttons(self, buttons):
+        # Unbind during batch update to avoid N layout passes
+        self.user_layout.unbind(minimum_height=self._height_setter)
         self.user_layout.clear_widgets()
-        for display_name, score, debt, db_user, lab, rank in users:
-            user_button = self._create_user_button(display_name, score, debt, db_user, lab, rank)
-            self.user_layout.add_widget(user_button)
+        for btn in buttons:
+            self.user_layout.add_widget(btn)
+        self.user_layout.height = self.user_layout.minimum_height
+        self.user_layout.bind(minimum_height=self._height_setter)
         self.scroll_view.scroll_y = 1.0
 
     def filter_users_by_letter(self, instance):
         selected_letter = instance.text
-        filtered = [row for row in self._cached_users if row[0].startswith(selected_letter)]
-        self._rebuild_buttons(filtered)
+        filtered = [btn for btn in self._all_buttons if btn.display_name.startswith(selected_letter)]
+        self._show_buttons(filtered)
 
     def show_all_users(self, instance=None):
-        self._rebuild_buttons(self._cached_users)
+        self._show_buttons(self._all_buttons)
 
     def mark_stale(self):
         self._needs_refresh = True
@@ -132,7 +137,12 @@ class MainScreen(TouchActivityMixin, Screen):
     def update_user_list(self, instance=None):
         self._cached_users = self.get_users_with_total_scores()
         self._needs_refresh = False
-        self._rebuild_buttons(self._cached_users)
+        self._all_buttons = []
+        for display_name, score, debt, db_user, lab, rank in self._cached_users:
+            btn = self._create_user_button(display_name, score, debt, db_user, lab, rank)
+            btn.display_name = display_name
+            self._all_buttons.append(btn)
+        self._show_buttons(self._all_buttons)
 
     def on_user_button_press(self, instance):
         db_user = instance.db_user
