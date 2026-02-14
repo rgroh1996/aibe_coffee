@@ -17,7 +17,6 @@ class MainScreen(TouchActivityMixin, Screen):
         self._cached_users = []
         self._all_buttons = []
         self._needs_refresh = True
-        self._height_setter = self.user_layout.setter('height')
 
         layout = BoxLayout(orientation='vertical')
         self.add_widget(layout)
@@ -53,7 +52,8 @@ class MainScreen(TouchActivityMixin, Screen):
         # Scrollable list of user buttons
         self.scroll_view = ScrollView(size_hint=(1, 0.9))
         self.user_layout = GridLayout(cols=1, spacing=10, size_hint_y=None)
-        self.user_layout.bind(minimum_height=self.user_layout.setter('height'))
+        self._height_setter = self.user_layout.setter('height')
+        self.user_layout.bind(minimum_height=self._height_setter)
 
         self.scroll_view.add_widget(self.user_layout)
         layout.add_widget(self.scroll_view)
