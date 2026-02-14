@@ -11,6 +11,7 @@ from frontend.main_screen import MainScreen
 from frontend.select_coffee_screen import SelectCoffeeScreen
 from frontend.payment_screen import PaymentScreen
 from frontend.new_user_screen import NewUserScreen
+from frontend.user_profile_screen import UserProfileScreen
 from frontend.cleaning_screen import CleaningScreen
 from frontend.contribute_screen import ContributeScreen
 from frontend.screensaver_screen import ScreensaverScreen
@@ -19,11 +20,7 @@ from kivy.config import Config
 from kivy.uix.label import Label
 from kivy.clock import Clock
 
-import threading
-import argparse
-
 from backend.data_manager import DataManager
-from backend.shelly_log import log_voltage_main, test_connection
 from widgets.goose_widget import GooseOverlay
 from backend.touch_activity_tracker import TouchActivityTracker
 
@@ -49,6 +46,7 @@ class CoffeeListApp(App):
         self.sm.add_widget(SelectCoffeeScreen(name='select_coffee', data_manager=self.data_manager))
         self.sm.add_widget(PaymentScreen(name='payment', data_manager=self.data_manager))
         self.sm.add_widget(NewUserScreen(name='new_user', data_manager=self.data_manager))
+        self.sm.add_widget(UserProfileScreen(name='user_profile', data_manager=self.data_manager))
         self.sm.add_widget(CleaningScreen(name='cleaning', data_manager=self.data_manager))
         self.sm.add_widget(ContributeScreen(name='contribute_screen'))
         self.sm.add_widget(ScreensaverScreen(name='screensaver'))
@@ -88,25 +86,4 @@ class CoffeeListApp(App):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Start the Coffee List App with optional voltage logging.')
-    parser.add_argument('--noshelly', action='store_true', help='Do not start the smart plug voltage logging.')
-    args = parser.parse_args()
-    
-    # Signal for background thread to stop
-    stop_signal = threading.Event()
-
-    stop_if_no_shelly = not args.noshelly
-    if not test_connection() and stop_if_no_shelly:
-        raise ValueError("Shelly not connected")
-
-    # Create and start the thread
-    thread = threading.Thread(target=log_voltage_main, args=(stop_signal,))
-    # Start the thread
-    thread.start()
-    
-    # Run the coffee list app
     CoffeeListApp().run()
-    
-    stop_signal.set()
-    # Wait for the thread to finish
-    thread.join()
