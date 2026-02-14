@@ -145,7 +145,7 @@ class MainScreen(TouchActivityMixin, Screen):
                 self.show_payment_popup_lvl2(lambda: self.on_user_button_press_after(db_user), exclamation_mark=i + 1)
 
         # Personalized Message
-        if db_user == 'MISCHA':
+        if 'mischa' in db_user.lower():
            App.get_running_app().walk_goose()
 
         self.on_user_button_press_after(db_user)
