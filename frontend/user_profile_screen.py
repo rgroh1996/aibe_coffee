@@ -15,10 +15,11 @@ LAB_CHOICES = [
 ]
 
 
-class NewUserScreen(TouchActivityMixin, Screen):
+class UserProfileScreen(TouchActivityMixin, Screen):
     def __init__(self, data_manager, **kwargs):
-        super(NewUserScreen, self).__init__(**kwargs)
+        super(UserProfileScreen, self).__init__(**kwargs)
         self.data_manager = data_manager
+        self.old_username = None
         self.active_input = None
 
         main_layout = BoxLayout(orientation='vertical', padding=(15, 10, 15, 10))
@@ -33,7 +34,7 @@ class NewUserScreen(TouchActivityMixin, Screen):
         main_layout.add_widget(top_bar)
 
         # Title
-        self.label = Label(text='Create New User', bold=True, height=40, size_hint_y=None, font_size='20sp')
+        self.label = Label(text='Complete your profile', bold=True, height=40, size_hint_y=None, font_size='20sp')
         main_layout.add_widget(self.label)
 
         main_layout.add_widget(self._spacer(5))
@@ -80,9 +81,9 @@ class NewUserScreen(TouchActivityMixin, Screen):
         main_layout.add_widget(self._spacer(8))
 
         # Confirm button
-        confirm_button = Button(text='Create User', size_hint_y=None, height=55, font_size='22sp', bold=True,
+        confirm_button = Button(text='Confirm', size_hint_y=None, height=55, font_size='22sp', bold=True,
                                 background_color=(1, 0.6, 0.4, 1), color=(1, 1, 1, 1))
-        confirm_button.bind(on_press=self.show_confirmation_popup)
+        confirm_button.bind(on_press=self.on_confirm)
         main_layout.add_widget(confirm_button)
 
         self.add_widget(main_layout)
@@ -106,9 +107,6 @@ class NewUserScreen(TouchActivityMixin, Screen):
         row.add_widget(ti)
         return row, label, ti
 
-    def go_back(self, instance):
-        App.get_running_app().sm.current = 'main'
-
     def on_focus(self, instance, value):
         if value:
             self._set_active_field(instance)
@@ -126,6 +124,15 @@ class NewUserScreen(TouchActivityMixin, Screen):
         elif field_input == self.last_name_input:
             self.ln_label.color = (1, 0.6, 0.4, 1)
             self.last_name_input.background_color = (1, 0.97, 0.94, 1)
+
+    def set_old_username(self, username):
+        self.old_username = username
+
+    def on_pre_enter(self):
+        self.first_name_input.text = ''
+        self.last_name_input.text = ''
+        self.lab_spinner.text = 'Select Lab'
+        self._set_active_field(self.first_name_input)
 
     def create_keyboard(self):
         keyboard_layout = BoxLayout(orientation='vertical', size_hint_y=None, height=200, spacing=2)
@@ -169,18 +176,11 @@ class NewUserScreen(TouchActivityMixin, Screen):
 
         return keyboard_layout
 
-    def on_pre_enter(self):
-        self.first_name_input.text = ''
-        self.last_name_input.text = ''
-        self.lab_spinner.text = 'Select Lab'
-        self._set_active_field(self.first_name_input)
-
     def on_key_press(self, instance):
         if self.active_input is None:
             return
         current_text = self.active_input.text
         key = instance.key_value
-
         if key == 'Backspace':
             self.active_input.text = current_text[:-1]
         elif key == 'Space':
@@ -188,12 +188,7 @@ class NewUserScreen(TouchActivityMixin, Screen):
         else:
             self.active_input.text += key
 
-    def confirm_user_name(self, first_name, last_name, lab):
-        self.data_manager.add_new_user(first_name, last_name, lab)
-        self.popup.dismiss()
-        App.get_running_app().sm.current = 'main'
-
-    def show_confirmation_popup(self, instance):
+    def on_confirm(self, instance):
         first_name = self.first_name_input.text.strip()
         last_name = self.last_name_input.text.strip()
         lab = self.lab_spinner.text
@@ -205,10 +200,12 @@ class NewUserScreen(TouchActivityMixin, Screen):
             self._show_error('Please select a lab.')
             return
 
-        if self.data_manager.check_user_exists(first_name, last_name):
-            self.show_user_exists_popup(first_name, last_name)
-        else:
-            self.show_confirm_user_popup(first_name, last_name, lab)
+        self.data_manager.complete_profile(self.old_username, first_name, last_name, lab)
+        new_display_name = f"{first_name} {last_name}"
+
+        app = App.get_running_app()
+        app.sm.current = 'select_coffee'
+        app.sm.get_screen('select_coffee').set_selected_user(new_display_name)
 
     def _show_error(self, message):
         content = BoxLayout(orientation='vertical', spacing=10, padding=10)
@@ -219,29 +216,5 @@ class NewUserScreen(TouchActivityMixin, Screen):
         ok_button.bind(on_press=lambda x: popup.dismiss())
         popup.open()
 
-    def show_user_exists_popup(self, first_name, last_name):
-        content = BoxLayout(orientation='vertical', spacing=10, padding=10)
-        content.add_widget(Label(text=f'User "{first_name} {last_name}" already exists.'))
-
-        ok_button = Button(text='OK', size_hint_y=None, height=50)
-        ok_button.bind(on_press=lambda x: self.popup.dismiss())
-        content.add_widget(ok_button)
-
-        self.popup = Popup(title='User Exists', content=content, size_hint=(None, None), size=(400, 200))
-        self.popup.open()
-
-    def show_confirm_user_popup(self, first_name, last_name, lab):
-        display_name = f"{first_name} {last_name} ({lab})"
-        content = BoxLayout(orientation='vertical', spacing=10, padding=10)
-        content.add_widget(Label(text=f'Create user {display_name}?'))
-
-        buttons_layout = BoxLayout(size_hint_y=None, height=50)
-        yes_button = Button(text='Yes', on_press=lambda x: self.confirm_user_name(first_name, last_name, lab))
-        no_button = Button(text='No', on_press=lambda x: self.popup.dismiss())
-        buttons_layout.add_widget(yes_button)
-        buttons_layout.add_widget(no_button)
-
-        content.add_widget(buttons_layout)
-
-        self.popup = Popup(title='Confirm New User', content=content, size_hint=(None, None), size=(400, 200))
-        self.popup.open()
+    def go_back(self, instance):
+        App.get_running_app().sm.current = 'main'
