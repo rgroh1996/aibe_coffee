@@ -38,7 +38,7 @@ class MainScreen(TouchActivityMixin, Screen):
 
         # add another option "all" to show all users
         all_button = Button(text='Rank', size_hint=(1, 1), background_color=(1, 0.6, 0.4, 1))
-        all_button.bind(on_press=self.update_user_list)
+        all_button.bind(on_press=self.show_all_users)
         alphabet_grid.add_widget(all_button)
         all_button.font_size = '22sp'
         all_button.spacing = (3, 3)
@@ -107,19 +107,20 @@ class MainScreen(TouchActivityMixin, Screen):
         user_button.bind(on_press=self.on_user_button_press)
         return user_button
 
-    def filter_users_by_letter(self, instance):
-        selected_letter = instance.text
-        filtered_users = []
-        for user_row in self._cached_users:
-            if user_row[0].startswith(selected_letter):
-                filtered_users.append(user_row)
-
+    def _rebuild_buttons(self, users):
         self.user_layout.clear_widgets()
-        for display_name, score, debt, db_user, lab, rank in filtered_users:
+        for display_name, score, debt, db_user, lab, rank in users:
             user_button = self._create_user_button(display_name, score, debt, db_user, lab, rank)
             self.user_layout.add_widget(user_button)
-
         self.scroll_view.scroll_y = 1.0
+
+    def filter_users_by_letter(self, instance):
+        selected_letter = instance.text
+        filtered = [row for row in self._cached_users if row[0].startswith(selected_letter)]
+        self._rebuild_buttons(filtered)
+
+    def show_all_users(self, instance=None):
+        self._rebuild_buttons(self._cached_users)
 
     def mark_stale(self):
         self._needs_refresh = True
@@ -129,14 +130,9 @@ class MainScreen(TouchActivityMixin, Screen):
             Clock.schedule_once(lambda dt: self.update_user_list())
 
     def update_user_list(self, instance=None):
-        self.user_layout.clear_widgets()
         self._cached_users = self.get_users_with_total_scores()
-        for display_name, score, debt, db_user, lab, rank in self._cached_users:
-            user_button = self._create_user_button(display_name, score, debt, db_user, lab, rank)
-            self.user_layout.add_widget(user_button)
-
         self._needs_refresh = False
-        self.scroll_view.scroll_y = 1.0
+        self._rebuild_buttons(self._cached_users)
 
     def on_user_button_press(self, instance):
         db_user = instance.db_user
